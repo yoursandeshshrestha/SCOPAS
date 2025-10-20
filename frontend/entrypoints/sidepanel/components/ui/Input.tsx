@@ -11,6 +11,7 @@ interface InputProps {
   className?: string;
   required?: boolean;
   disabled?: boolean;
+  maxLength?: number;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -23,6 +24,7 @@ const Input: React.FC<InputProps> = ({
   className = "",
   required = false,
   disabled = false,
+  maxLength,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPasswordField = type === "password";
@@ -48,9 +50,12 @@ const Input: React.FC<InputProps> = ({
           onChange={onChange}
           required={required}
           disabled={disabled}
+          maxLength={maxLength}
           className={`w-full px-4 py-2.5 rounded-lg bg-[var(--bg-secondary)] text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-gray-500 transition-colors text-sm ${
             Icon ? "pl-10" : ""
-          } ${isPasswordField ? "pr-10" : ""} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          } ${isPasswordField ? "pr-10" : ""} ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         />
         {isPasswordField && (
           <button

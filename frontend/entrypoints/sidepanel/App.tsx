@@ -9,7 +9,7 @@ import Coupons from "./pages/CouponsPage/Coupons";
 import Analytics from "./pages/AnalyticsPage/Analytics";
 import Terms from "./pages/TermsPage/Terms";
 import Privacy from "./pages/PrivacyPage/Privacy";
-import Card from "./pages/CardPage/Card";
+import Card from "./pages/CardPage/CardPage";
 
 function App() {
   return (
