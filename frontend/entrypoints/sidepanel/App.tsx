@@ -10,6 +10,7 @@ import Analytics from "./pages/AnalyticsPage/Analytics";
 import Terms from "./pages/TermsPage/Terms";
 import Privacy from "./pages/PrivacyPage/Privacy";
 import Card from "./pages/CardPage/CardPage";
+import Account from "./pages/AccountPage/Account";
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             }
           />
