@@ -5,6 +5,7 @@ export interface Coupon {
   storeId: string;
   platformId: string;
   details: string | null;
+  updatedAt: Date;
 }
 
 export interface CouponWithStore extends Coupon {
@@ -31,4 +32,12 @@ export interface GetCouponsParams extends CouponFilters {
 
 export interface StoreCouponsResponse {
   [platformName: string]: string[];
+}
+
+export interface CreateCouponInput {
+  storeName: string;
+  code: string;
+  description?: string;
+  platformId?: string;
+  storeLink?: string;
 }

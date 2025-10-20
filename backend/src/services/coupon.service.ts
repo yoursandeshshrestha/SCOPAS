@@ -4,8 +4,10 @@ import type {
   CouponWithStore,
   CouponFilters,
   StoreCouponsResponse,
+  CreateCouponInput,
 } from "../types/coupon.types.js";
 import type { Prisma } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 export class CouponService {
   static async getAllCoupons(
@@ -26,6 +28,7 @@ export class CouponService {
           storeId: true,
           platformId: true,
           details: true,
+          updatedAt: true,
           store: {
             select: {
               id: true,
@@ -41,9 +44,7 @@ export class CouponService {
           },
         },
         orderBy: {
-          store: {
-            name: "asc",
-          },
+          updatedAt: "desc",
         },
         skip,
         take: limit,
@@ -64,6 +65,7 @@ export class CouponService {
         storeId: true,
         platformId: true,
         details: true,
+        updatedAt: true,
         store: {
           select: {
             id: true,
@@ -140,6 +142,7 @@ export class CouponService {
           storeId: true,
           platformId: true,
           details: true,
+          updatedAt: true,
           store: {
             select: {
               id: true,
@@ -154,6 +157,9 @@ export class CouponService {
             },
           },
         },
+        orderBy: {
+          updatedAt: "desc",
+        },
         skip,
         take: limit,
       }),
@@ -161,6 +167,111 @@ export class CouponService {
     ]);
 
     return PaginationHelper.createResult(coupons, page, limit, totalCount);
+  }
+
+  static async createCoupon(
+    input: CreateCouponInput
+  ): Promise<CouponWithStore> {
+    const { storeName, code, description, storeLink } = input;
+    let { platformId } = input;
+
+    // If no platformId provided, get or create a default platform
+    if (!platformId) {
+      let defaultPlatform = await db.platform.findFirst({
+        where: { name: "Web" },
+      });
+
+      if (!defaultPlatform) {
+        // Create default platform if it doesn't exist
+        const platformIdNew = randomUUID();
+        defaultPlatform = await db.platform.create({
+          data: {
+            id: platformIdNew,
+            name: "Web",
+            version: 1,
+          },
+        });
+      }
+
+      platformId = defaultPlatform.id;
+    }
+
+    // Check if store exists, if not create it
+    let store = await db.store.findFirst({
+      where: {
+        name: {
+          equals: storeName,
+          mode: "insensitive",
+        },
+        platformId,
+      },
+    });
+
+    if (!store) {
+      // Create new store if it doesn't exist
+      const storeId = randomUUID();
+      store = await db.store.create({
+        data: {
+          id: storeId,
+          name: storeName,
+          link:
+            storeLink ||
+            `https://${storeName.toLowerCase().replace(/\s+/g, "")}.com`,
+          platformId,
+        },
+      });
+    }
+
+    // Check if coupon with same code already exists for this store
+    const existingCoupon = await db.coupon.findUnique({
+      where: {
+        code_storeId: {
+          code,
+          storeId: store.id,
+        },
+      },
+    });
+
+    if (existingCoupon) {
+      throw new Error("Coupon with this code already exists for this store");
+    }
+
+    // Create the coupon
+    const couponId = randomUUID();
+    const coupon = await db.coupon.create({
+      data: {
+        id: couponId,
+        code,
+        storeId: store.id,
+        platformId,
+        details: description || null,
+        version: 1,
+      },
+      select: {
+        id: true,
+        code: true,
+        version: true,
+        storeId: true,
+        platformId: true,
+        details: true,
+        updatedAt: true,
+        store: {
+          select: {
+            id: true,
+            name: true,
+            link: true,
+          },
+        },
+        platform: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return coupon;
   }
 
   private static buildWhereClause(

@@ -14,6 +14,14 @@ const storeNameBodySchema = z.object({
   name: z.string().min(1, "Store name is required"),
 });
 
+const createCouponSchema = z.object({
+  storeName: z.string().min(1, "Store name is required"),
+  code: z.string().min(1, "Coupon code is required"),
+  description: z.string().optional(),
+  platformId: z.string().optional(),
+  storeLink: z.string().url().optional(),
+});
+
 export class CouponController {
   static async getAllCoupons(
     req: Request,
@@ -129,6 +137,31 @@ export class CouponController {
       if (err instanceof z.ZodError) {
         ResponseHandler.badRequest(res, "Invalid parameters", err.flatten());
         return;
+      }
+      next(err);
+    }
+  }
+
+  static async createCoupon(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const body = createCouponSchema.parse(req.body);
+      const coupon = await CouponService.createCoupon(body);
+
+      ResponseHandler.success(res, coupon, "Coupon created successfully", 201);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        ResponseHandler.badRequest(res, "Invalid request body", err.flatten());
+        return;
+      }
+      if (err instanceof Error) {
+        if (err.message.includes("already exists")) {
+          ResponseHandler.conflict(res, err.message);
+          return;
+        }
       }
       next(err);
     }

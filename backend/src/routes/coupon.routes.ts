@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { CouponController } from "../controllers/coupon.controller.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -8,6 +9,9 @@ router.get("/", CouponController.getAllCoupons);
 
 // Get coupons by store name (POST request with body)
 router.post("/by-store", CouponController.getCouponsByStoreName);
+
+// Create a new coupon (requires authentication)
+router.post("/", CouponController.createCoupon);
 
 // Get coupon by ID
 router.get("/:id", CouponController.getCouponById);
