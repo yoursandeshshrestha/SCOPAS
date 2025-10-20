@@ -5,13 +5,15 @@ import authRoutes from "./routes/auth.routes.js";
 import storeRoutes from "./routes/store.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import selectorDetectorRoutes from "./routes/selector-detector.routes.js";
+import couponValidatorRoutes from "./routes/coupon-validator.routes.js";
 import { config } from "./config/env.js";
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware - Increase body size limit for HTML payload in selector detection
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // CORS middleware for frontend communication
 app.use(corsMiddleware);
@@ -29,6 +31,8 @@ app.use(`${config.server.basePath}/auth`, authRoutes);
 app.use(`${config.server.basePath}/stores`, storeRoutes);
 app.use(`${config.server.basePath}/coupons`, couponRoutes);
 app.use(`${config.server.basePath}/users`, userRoutes);
+app.use(`${config.server.basePath}/selector`, selectorDetectorRoutes);
+app.use(`${config.server.basePath}/coupon-validator`, couponValidatorRoutes);
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({
