@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "../../components/layout/Navbar";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import SavingsInsights from "./SavingsInsights";
 
 const Analytics: React.FC = () => {
   const navigate = useNavigate();
@@ -33,14 +34,7 @@ const Analytics: React.FC = () => {
       {/* Content */}
       <div className="flex-1 overflow-auto pt-38 pb-6 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="relative mb-2.5 rounded-lg bg-neutral-800 border border-neutral-700">
-            <div className="p-4">
-              <div className="text-white font-semibold mb-1">Overview</div>
-              <div className="text-neutral-400 text-sm">
-                Usage analytics coming soon.
-              </div>
-            </div>
-          </div>
+          <SavingsInsights />
         </div>
       </div>
     </div>
