@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { TicketPercent } from "lucide-react";
 
 interface ReopenButtonProps {
   onClick: () => void;
@@ -15,13 +14,11 @@ const ReopenButton = memo<ReopenButtonProps>(({ onClick, count }) => {
       onClick={onClick}
     >
       <div className="scopas-reopen-content">
-        <div className="row-top">
-          <TicketPercent width={16} height={16} />
-          <span className="brand">SCOPAS</span>
+        <div className="main-circle">
+          <span className="scopas-s">S</span>
         </div>
-        <div className="row-bottom">
-          <span className="count">{count}</span>
-          <span className="label">Coupons</span>
+        <div className="coupon-badge">
+          <span className="coupon-count">{count}</span>
         </div>
       </div>
     </button>
