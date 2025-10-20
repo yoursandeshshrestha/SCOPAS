@@ -241,6 +241,7 @@ interface CouponListPopupProps {
   storeName: string;
   onClose: () => void;
   onAutoApply: () => void;
+  onShowWorkingCoupons?: () => void;
 }
 
 interface CouponCardProps {
@@ -315,11 +316,27 @@ const CouponCard = memo<CouponCardProps>(
                 onMouseEnter={() => setIsButtonHovered(true)}
                 onMouseLeave={() => setIsButtonHovered(false)}
                 style={{
-                  ...STYLES.copyButton,
-                  ...(isButtonHovered && !isCopied
-                    ? STYLES.copyButtonHover
-                    : {}),
-                  ...(isCopied ? STYLES.copyButtonCopied : {}),
+                  backgroundColor: isCopied
+                    ? "rgb(63 63 70)"
+                    : isButtonHovered
+                    ? "rgba(82, 82, 91, 0.45)"
+                    : "transparent",
+                  border: "2px dashed rgb(82 82 91)",
+                  borderColor:
+                    isButtonHovered && !isCopied
+                      ? "rgb(113 113 122)"
+                      : "rgb(82 82 91)",
+                  color: "rgb(250 250 250)",
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  flexShrink: 0,
+                  cursor: "pointer",
                 }}
               >
                 {isCopied ? (
@@ -355,6 +372,7 @@ export default function CouponListPopup({
   storeName,
   onClose,
   onAutoApply,
+  onShowWorkingCoupons,
 }: CouponListPopupProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(true);
@@ -412,19 +430,48 @@ export default function CouponListPopup({
             {/* Left Section */}
             <div style={STYLES.leftSection}>
               <h2 style={{ ...STYLES.title, marginBottom: 0 }}>
-                Great news! We've found {coupons.length} working{" "}
+                Great news! We've found {coupons.length} available{" "}
                 {coupons.length === 1 ? "coupon" : "coupons"} for {storeName}.
               </h2>
               <p style={{ ...STYLES.subtitle, marginTop: 0, marginBottom: 0 }}>
                 Copy any coupon code below or let us automatically test and
                 apply the best one for you.
               </p>
-              {/* Move Auto Apply before Report an issue */}
+              {/* Auto Apply button */}
               <button onClick={onAutoApply} style={STYLES.autoApplyButton}>
-                Auto-Apply Best Coupon
+                {onShowWorkingCoupons
+                  ? "Auto Apply Again"
+                  : "Auto-Apply Best Coupon"}
               </button>
-              {/* Report issue removed */}
             </div>
+
+            {/* Working Coupons link (only shows after auto-apply has run) */}
+            {onShowWorkingCoupons && (
+              <button
+                onClick={onShowWorkingCoupons}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: COLORS.success,
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  padding: "8px 4px",
+                  marginLeft: "4px",
+                  textAlign: "left" as const,
+                  transition: "opacity 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "0.7";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                }}
+              >
+                Show working coupons
+              </button>
+            )}
 
             {/* Right Section - Coupon List */}
             <div style={STYLES.couponList}>

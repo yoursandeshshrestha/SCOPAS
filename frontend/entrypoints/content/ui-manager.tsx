@@ -2,23 +2,26 @@ import ReactDOM from "react-dom/client";
 import CouponListPopup from "./components/CouponListPopup";
 import NoCouponsPopup from "./components/NoCouponsPopup";
 import AutoApplyProgressPopup from "./components/AutoApplyPopup";
+import { AutoApplyResultsPopup } from "./components/AutoApplyResultsPopup";
 import type { CouponWithStore } from "../sidepanel/types/coupon.types";
 import { logger } from "./logger";
 import ReopenButton from "./components/ReopenButton";
 import popupStyles from "./styles/popup-styles.css?inline";
 import reopenButtonStyles from "./styles/reopen-button-styles.css?inline";
+import { detectCouponSelector, applyCoupon } from "./auto-apply";
 
 // ========= UI Manager for showing/hiding popups ========= //
 class UIManager {
   private root: ReactDOM.Root | null = null;
   private container: HTMLDivElement | null = null;
   private containerShadow: ShadowRoot | null = null;
-  private currentView: "list" | "progress" | null = null;
+  private currentView: "list" | "progress" | "results" | null = null;
   private reopenRoot: ReactDOM.Root | null = null;
   private reopenContainer: HTMLDivElement | null = null;
   private reopenShadow: ShadowRoot | null = null;
   private lastCoupons: CouponWithStore[] | null = null;
   private lastStoreName: string | null = null;
+  private lastWorkingCoupons: CouponWithStore[] | null = null;
 
   showCouponList(coupons: CouponWithStore[], storeName: string): void {
     logger.log("Showing coupon list popup");
@@ -42,6 +45,15 @@ class UIManager {
         storeName={storeName}
         onClose={() => this.hide()}
         onAutoApply={() => this.showAutoApply(coupons, storeName)}
+        onShowWorkingCoupons={
+          this.lastWorkingCoupons && this.lastWorkingCoupons.length > 0
+            ? () => {
+                if (this.lastWorkingCoupons && this.lastStoreName) {
+                  this.showResults(this.lastWorkingCoupons, this.lastStoreName);
+                }
+              }
+            : undefined
+        }
       />
     );
   }
@@ -57,9 +69,43 @@ class UIManager {
         coupons={coupons}
         storeName={storeName}
         onClose={() => this.hide()}
-        onComplete={(bestCoupon) => {
-          logger.log("Auto-apply complete", bestCoupon);
-          setTimeout(() => this.hide(), 2000);
+        onBack={() => {
+          // Go back to coupon list
+          if (this.lastCoupons && this.lastStoreName) {
+            this.showCouponList(this.lastCoupons, this.lastStoreName);
+          }
+        }}
+        onComplete={(workingCoupons) => {
+          logger.log("Auto-apply complete", workingCoupons);
+          // Store working coupons for later reference
+          this.lastWorkingCoupons = workingCoupons;
+          // Show results popup
+          this.showResults(workingCoupons, storeName);
+        }}
+        onDetectSelector={async () => {
+          return await detectCouponSelector();
+        }}
+        onApplyCoupon={async (code, selector, applyButtonSelector) => {
+          return await applyCoupon(code, selector, applyButtonSelector);
+        }}
+      />
+    );
+  }
+
+  showResults(workingCoupons: CouponWithStore[], storeName: string): void {
+    logger.log("Showing auto-apply results popup");
+    this.currentView = "results";
+    this.render(
+      <AutoApplyResultsPopup
+        workingCoupons={workingCoupons}
+        allCoupons={this.lastCoupons || []}
+        storeName={storeName}
+        onClose={() => this.hide()}
+        onShowAllCoupons={() => {
+          // Go back to coupon list
+          if (this.lastCoupons && this.lastStoreName) {
+            this.showCouponList(this.lastCoupons, this.lastStoreName);
+          }
         }}
       />
     );

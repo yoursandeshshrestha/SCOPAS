@@ -76,6 +76,8 @@ const STYLES = {
     display: "flex",
     flexDirection: "column" as const,
     gap: "16px",
+    flex: 1,
+    minHeight: 0,
   } as CSSProperties,
   title: {
     fontSize: "20px",
@@ -148,14 +150,60 @@ const STYLES = {
     transition: "opacity 0.2s",
     color: "rgb(238, 238, 238)",
   } as CSSProperties,
+  buttonContainer: {
+    display: "flex",
+    gap: "12px",
+    marginTop: "20px",
+  } as CSSProperties,
+  button: {
+    flex: 1,
+    padding: "12px 20px",
+    fontSize: "14px",
+    fontWeight: 600,
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    outline: "none",
+  } as CSSProperties,
+  primaryButton: {
+    backgroundColor: "white",
+    color: "#0b0b0d",
+  } as CSSProperties,
+  secondaryButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: COLORS.primary,
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+  } as CSSProperties,
 } as const;
 
 // ========= Types ========= //
+type AutoApplyState =
+  | "detecting" // Detecting coupon input selector
+  | "working" // Applying coupons
+  | "success" // Successfully applied
+  | "error" // Generic error
+  | "not-checkout"; // Not on checkout page
+
+type CouponTestState = "pending" | "testing" | "success" | "error";
+
 interface AutoApplyProgressPopupProps {
   coupons: CouponWithStore[];
   storeName: string;
   onClose: () => void;
-  onComplete?: (bestCoupon: CouponWithStore | null) => void;
+  onBack?: () => void;
+  onComplete?: (workingCoupons: CouponWithStore[]) => void;
+  onDetectSelector: () => Promise<{
+    success: boolean;
+    selector?: string;
+    applyButtonSelector?: string;
+    message?: string;
+  }>;
+  onApplyCoupon: (
+    code: string,
+    selector: string,
+    applyButtonSelector?: string
+  ) => Promise<boolean>;
 }
 
 // ========= Main Component ========= //
@@ -163,34 +211,156 @@ export default function AutoApplyPopup({
   coupons,
   storeName,
   onClose,
+  onBack,
   onComplete,
+  onDetectSelector,
+  onApplyCoupon,
 }: AutoApplyProgressPopupProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
   const [isVisible, setIsVisible] = useState(true);
+  const [state, setState] = useState<AutoApplyState>("detecting");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [selector, setSelector] = useState<string>("");
+  const [applyButtonSelector, setApplyButtonSelector] = useState<
+    string | undefined
+  >();
+  const [couponStates, setCouponStates] = useState<
+    Record<string, CouponTestState>
+  >({});
 
   const currentCoupon = coupons[currentIndex];
   const progressPercent = ((currentIndex + 1) / coupons.length) * 100;
 
-  // Simulate testing coupons
+  // Step 1: Detect selector on mount
   useEffect(() => {
-    if (currentIndex >= coupons.length - 1) {
-      setIsAnimating(false);
-      setTimeout(() => {
-        onComplete?.(coupons[0]); // Return first coupon as "best"
-      }, 1000);
-      return;
-    }
+    const detectAndStart = async () => {
+      setState("detecting");
+      const result = await onDetectSelector();
 
-    const timer = setTimeout(() => {
-      setCurrentIndex((prev) => prev + 1);
-    }, 2000);
+      if (!result.success) {
+        if (result.message?.toLowerCase().includes("checkout")) {
+          setState("not-checkout");
+          setErrorMessage(result.message);
+        } else {
+          setState("error");
+          setErrorMessage(
+            result.message || "Failed to detect coupon input field"
+          );
+        }
+        return;
+      }
 
-    return () => clearTimeout(timer);
-  }, [currentIndex, coupons, onComplete]);
+      // Successfully detected selector
+      setSelector(result.selector!);
+      setApplyButtonSelector(result.applyButtonSelector);
+      setState("working");
+    };
+
+    detectAndStart();
+  }, [onDetectSelector]);
+
+  // Step 2: Apply coupons once selector is detected
+  useEffect(() => {
+    if (state !== "working" || !selector) return;
+
+    const applyCoupons = async () => {
+      if (currentIndex >= coupons.length) {
+        setIsAnimating(false);
+        setState("success");
+
+        // Collect all working coupons
+        const workingCoupons = coupons.filter(
+          (coupon) => couponStates[coupon.id] === "success"
+        );
+
+        setTimeout(() => {
+          onComplete?.(workingCoupons);
+        }, 1500);
+        return;
+      }
+
+      const coupon = coupons[currentIndex];
+      if (coupon.code) {
+        // Set current coupon to testing state
+        setCouponStates((prev) => ({
+          ...prev,
+          [coupon.id]: "testing",
+        }));
+
+        const success = await onApplyCoupon(
+          coupon.code,
+          selector,
+          applyButtonSelector
+        );
+
+        // Set result state
+        setCouponStates((prev) => ({
+          ...prev,
+          [coupon.id]: success ? "success" : "error",
+        }));
+
+        // Wait a bit before trying next coupon
+        setTimeout(() => {
+          setCurrentIndex((prev) => prev + 1);
+        }, 2500);
+      } else {
+        // Skip coupons without code
+        setCouponStates((prev) => ({
+          ...prev,
+          [coupon.id]: "error",
+        }));
+        setCurrentIndex((prev) => prev + 1);
+      }
+    };
+
+    applyCoupons();
+  }, [
+    currentIndex,
+    coupons,
+    state,
+    selector,
+    applyButtonSelector,
+    onApplyCoupon,
+    onComplete,
+  ]);
 
   const requestClose = (): void => {
     setIsVisible(false);
+  };
+
+  const handleRetry = async (): Promise<void> => {
+    setCurrentIndex(0);
+    setErrorMessage("");
+    setState("detecting");
+
+    const result = await onDetectSelector();
+
+    if (!result.success) {
+      if (result.message?.toLowerCase().includes("checkout")) {
+        setState("not-checkout");
+        setErrorMessage(result.message);
+      } else {
+        setState("error");
+        setErrorMessage(
+          result.message || "Failed to detect coupon input field"
+        );
+      }
+      return;
+    }
+
+    // Successfully detected selector
+    setSelector(result.selector!);
+    setApplyButtonSelector(result.applyButtonSelector);
+    setState("working");
+  };
+
+  const handleBack = (): void => {
+    if (onBack) {
+      onBack();
+    } else {
+      requestClose();
+    }
   };
 
   return (
@@ -233,38 +403,423 @@ export default function AutoApplyPopup({
           {/* Content */}
           <div style={STYLES.content}>
             <div style={STYLES.progressSection}>
-              {/* Title & Description */}
-              <h2 style={STYLES.title}>Trying Best Coupons for {storeName}</h2>
-              <p style={STYLES.description}>
-                No more wasting time searching for coupons - SCOPAS tests them
-                all for you!
-              </p>
+              {/* Title & Description - varies by state */}
+              {state === "detecting" && (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginTop: "17px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        border: "2px solid rgba(255, 255, 255, 0.2)",
+                        borderTopColor: "white",
+                        animation: "scopas-spin 0.8s linear infinite",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <h2
+                      style={{
+                        ...STYLES.title,
+                        margin: 0,
+                        lineHeight: "1",
+                      }}
+                    >
+                      Detecting Coupon Field...
+                    </h2>
+                  </div>
+                  <p style={STYLES.description}>
+                    Analyzing the page to find where to apply your coupons.
+                  </p>
+                  <div style={STYLES.progressBarWrapper}>
+                    <div
+                      style={{
+                        ...STYLES.progressBar,
+                        width: "50%",
+                        animation: "scopas-shimmer 2s ease-in-out infinite",
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
-              {/* Progress Bar */}
-              <div style={STYLES.progressBarWrapper}>
-                <div
-                  style={{
-                    ...STYLES.progressBar,
-                    width: `${progressPercent}%`,
-                    transition: "width 0.3s ease-out",
-                    animation: isAnimating
-                      ? "scopas-shimmer 2s ease-in-out infinite"
-                      : "none",
-                  }}
-                />
-              </div>
+              {state === "working" && (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginTop: "17px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        border: "2px solid rgba(255, 255, 255, 0.2)",
+                        borderTopColor: "white",
+                        animation: "scopas-spin 0.8s linear infinite",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <h2
+                      style={{
+                        ...STYLES.title,
+                        margin: 0,
+                        lineHeight: "1",
+                      }}
+                    >
+                      Trying Best Coupons for {storeName}
+                    </h2>
+                  </div>
+                  <p style={STYLES.description}>
+                    No more wasting time searching for coupons - SCOPAS tests
+                    them all for you!
+                  </p>
 
-              {/* Progress Info */}
-              <div style={STYLES.progressInfo}>
-                <span style={STYLES.currentCoupon}>
-                  {currentCoupon?.code ||
-                    currentCoupon?.details ||
-                    "Testing..."}
-                </span>
-                <span style={STYLES.couponCount}>
-                  {currentIndex + 1} / {coupons.length} coupons
-                </span>
-              </div>
+                  {/* Progress Bar */}
+                  <div style={STYLES.progressBarWrapper}>
+                    <div
+                      style={{
+                        ...STYLES.progressBar,
+                        width: `${progressPercent}%`,
+                        transition: "width 0.3s ease-out",
+                        animation: isAnimating
+                          ? "scopas-shimmer 2s ease-in-out infinite"
+                          : "none",
+                      }}
+                    />
+                  </div>
+
+                  {/* Progress Info */}
+                  <div style={STYLES.progressInfo}>
+                    <span style={STYLES.currentCoupon}>
+                      {currentCoupon?.code ||
+                        currentCoupon?.details ||
+                        "Testing..."}
+                    </span>
+                    <span style={STYLES.couponCount}>
+                      {currentIndex + 1} / {coupons.length} coupons
+                    </span>
+                  </div>
+
+                  {/* Coupon List */}
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: COLORS.primaryMuted,
+                        marginBottom: "12px",
+                        textTransform: "uppercase" as const,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      Testing Coupons:
+                    </h3>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column" as const,
+                        gap: "6px",
+                        flex: 1,
+                        overflowY: "auto" as const,
+                        minHeight: 0,
+                      }}
+                    >
+                      {coupons.map((coupon, index) => {
+                        const couponState =
+                          couponStates[coupon.id] || "pending";
+                        const isCurrent = index === currentIndex;
+
+                        return (
+                          <div
+                            key={coupon.id}
+                            style={{
+                              position: "relative" as const,
+                              marginBottom: "4px",
+                              borderRadius: "8px",
+                              backgroundColor: "var(--bg-secondary, #2a2a2a)",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              transition:
+                                "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                              ...(isCurrent && {
+                                borderColor: "rgba(255, 255, 255, 0.2)",
+                                backgroundColor: "rgba(42, 42, 42, 0.95)",
+                                boxShadow:
+                                  "0 4px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                              }),
+                              ...(couponState === "testing" && {
+                                opacity: 1,
+                                animation:
+                                  "scopas-pulse-subtle 1.5s ease-in-out infinite",
+                              }),
+                            }}
+                          >
+                            <div style={{ padding: "12px 14px" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  gap: "12px",
+                                }}
+                              >
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      marginBottom: "4px",
+                                    }}
+                                  >
+                                    {/* Status Icon */}
+                                    {couponState === "success" && (
+                                      <div
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          borderRadius: "50%",
+                                          backgroundColor: COLORS.success,
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          fontSize: "10px",
+                                          color: "white",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        ✓
+                                      </div>
+                                    )}
+                                    {couponState === "error" && (
+                                      <div
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          borderRadius: "50%",
+                                          backgroundColor: "#ef4444",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          fontSize: "10px",
+                                          color: "white",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        ✗
+                                      </div>
+                                    )}
+                                    {couponState === "testing" && (
+                                      <div
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          borderRadius: "50%",
+                                          border:
+                                            "2px solid rgba(255, 255, 255, 0.3)",
+                                          borderTopColor: "white",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          animation:
+                                            "scopas-spin 0.8s linear infinite",
+                                          flexShrink: 0,
+                                        }}
+                                      />
+                                    )}
+                                    <div
+                                      style={{
+                                        fontSize: "16px",
+                                        fontWeight: 600,
+                                        color: "rgb(250 250 250)",
+                                        fontFamily: "monospace",
+                                        letterSpacing: "0.05em",
+                                        transition:
+                                          "letter-spacing 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                        ...(isCurrent && {
+                                          letterSpacing: "0.1em",
+                                        }),
+                                      }}
+                                    >
+                                      {coupon.code ||
+                                        coupon.details ||
+                                        "No code"}
+                                    </div>
+                                  </div>
+                                  {coupon.details && (
+                                    <div
+                                      style={{
+                                        fontSize: "14px",
+                                        color: "rgb(163 163 163)",
+                                        lineHeight: "1.4",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap" as const,
+                                      }}
+                                    >
+                                      {coupon.details}
+                                    </div>
+                                  )}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    color: COLORS.primaryMuted,
+                                    fontWeight: 500,
+                                    flexShrink: 0,
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    backgroundColor:
+                                      "rgba(255, 255, 255, 0.05)",
+                                  }}
+                                >
+                                  {couponState === "success"
+                                    ? "Working"
+                                    : couponState === "error"
+                                    ? "Invalid"
+                                    : couponState === "testing"
+                                    ? "Testing..."
+                                    : "Pending"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {state === "not-checkout" && (
+                <>
+                  <h2 style={STYLES.title}>
+                    Are you sure you are on the checkout page?
+                  </h2>
+                  <p style={STYLES.description}>
+                    We couldn't find a coupon input field on this page. Please
+                    make sure you're on the checkout or cart page.
+                  </p>
+                  <div style={STYLES.buttonContainer}>
+                    <button
+                      onClick={handleBack}
+                      style={{
+                        ...STYLES.button,
+                        ...STYLES.secondaryButton,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255, 255, 255, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255, 255, 255, 0.1)";
+                      }}
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleRetry}
+                      style={{
+                        ...STYLES.button,
+                        ...STYLES.primaryButton,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e5e5e5";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                      }}
+                    >
+                      Try Auto Apply Again
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {state === "error" && (
+                <>
+                  <h2 style={STYLES.title}>Oops! Something went wrong</h2>
+                  <p style={STYLES.description}>
+                    {errorMessage ||
+                      "We couldn't apply coupons automatically. Please try copying and pasting them manually."}
+                  </p>
+                  <div style={STYLES.buttonContainer}>
+                    <button
+                      onClick={handleBack}
+                      style={{
+                        ...STYLES.button,
+                        ...STYLES.secondaryButton,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255, 255, 255, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(255, 255, 255, 0.1)";
+                      }}
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleRetry}
+                      style={{
+                        ...STYLES.button,
+                        ...STYLES.primaryButton,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e5e5e5";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                      }}
+                    >
+                      Try Auto Apply Again
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {state === "success" && (
+                <>
+                  <h2 style={STYLES.title}>Successfully Applied Coupon!</h2>
+                  <p style={STYLES.description}>
+                    We've found and applied the best coupon for you. Enjoy your
+                    savings!
+                  </p>
+                  <div style={STYLES.progressBarWrapper}>
+                    <div
+                      style={{
+                        ...STYLES.progressBar,
+                        width: "100%",
+                        backgroundColor: COLORS.success,
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -304,6 +859,32 @@ export default function AutoApplyPopup({
           }
           50% {
             opacity: 0.7;
+          }
+        }
+        @keyframes scopas-pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.1);
+          }
+        }
+        @keyframes scopas-spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes scopas-pulse-subtle {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.85;
           }
         }
       `}</style>
