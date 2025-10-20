@@ -93,6 +93,10 @@ export class ResponseHandler {
     this.error(res, message, 400, errors);
   }
 
+  static conflict(res: Response, message: string = "Conflict"): void {
+    this.error(res, message, 409);
+  }
+
   static internalError(
     res: Response,
     message: string = "Internal server error"
@@ -100,4 +104,3 @@ export class ResponseHandler {
     this.error(res, message, 500);
   }
 }
-

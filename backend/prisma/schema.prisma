@@ -14,6 +14,7 @@ model coupon {
   storeId    String
   platformId String
   details    String?
+  updatedAt  DateTime @default(now()) @updatedAt
   platform   platform @relation(fields: [platformId], references: [id])
   store      store    @relation(fields: [storeId], references: [id])
 

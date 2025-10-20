@@ -23,6 +23,8 @@ const EnvSchema = z.object({
   CORS_METHODS: z.string().optional(),
   CORS_HEADERS: z.string().optional(),
   CORS_CREDENTIALS: z.string().optional(),
+
+  OPENAI_API_KEY: z.string().optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
@@ -69,6 +71,9 @@ export const config = {
     methods: parseCsv(env.CORS_METHODS),
     headers: parseCsv(env.CORS_HEADERS),
     credentials: String(env.CORS_CREDENTIALS) === "true",
+  },
+  openai: {
+    apiKey: env.OPENAI_API_KEY,
   },
 } as const;
 
