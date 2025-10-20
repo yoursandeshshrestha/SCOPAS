@@ -1,7 +1,7 @@
 import { db } from "../config/database.js";
 import { hashPassword, verifyPassword } from "../utils/auth/hash.js";
 import { signTokens } from "../utils/auth/jwt.js";
-import type { JwtPayload, Tokens } from "../utils/auth/types.js";
+import type { JwtPayload, Tokens, UserInfo } from "../utils/auth/types.js";
 import { ConflictError, UnauthorizedError } from "../utils/errors.js";
 
 export async function signup(
@@ -43,12 +43,22 @@ export async function signup(
       expiresAt,
     },
   });
-  return tokens;
+
+  const userInfo: UserInfo = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  return { ...tokens, user: userInfo };
 }
 
 export async function signin(email: string, password: string): Promise<Tokens> {
   const user = await db.users.findUnique({ where: { email } });
-  if (!user || !user.password) throw new UnauthorizedError("Invalid credentials");
+  if (!user || !user.password)
+    throw new UnauthorizedError("Invalid credentials");
 
   const ok = await verifyPassword(password, user.password);
   if (!ok) throw new UnauthorizedError("Invalid credentials");
@@ -70,7 +80,16 @@ export async function signin(email: string, password: string): Promise<Tokens> {
       expiresAt,
     },
   });
-  return tokens;
+
+  const userInfo: UserInfo = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  return { ...tokens, user: userInfo };
 }
 
 function cryptoRandomId(): string {

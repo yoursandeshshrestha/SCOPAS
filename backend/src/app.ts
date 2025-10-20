@@ -4,6 +4,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.routes.js";
 import storeRoutes from "./routes/store.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { config } from "./config/env.js";
 
 const app = express();
@@ -27,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use(`${config.server.basePath}/auth`, authRoutes);
 app.use(`${config.server.basePath}/stores`, storeRoutes);
 app.use(`${config.server.basePath}/coupons`, couponRoutes);
+app.use(`${config.server.basePath}/users`, userRoutes);
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({
