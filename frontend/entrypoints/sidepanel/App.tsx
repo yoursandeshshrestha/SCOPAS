@@ -4,6 +4,7 @@ import { store } from "./store";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Signin from "./pages/SigninPage/Signin";
 import Signup from "./pages/SignupPage/Signup";
+import Onboarding from "./pages/OnboardingPage/Onboarding";
 import Dashboard from "./pages/DashboardPage/Dashboard";
 import Coupons from "./pages/CouponsPage/Coupons";
 import Analytics from "./pages/AnalyticsPage/Analytics";
@@ -20,6 +21,14 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute requireOnboarding={false}>
+                <Onboarding />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
