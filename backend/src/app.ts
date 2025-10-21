@@ -7,6 +7,7 @@ import couponRoutes from "./routes/coupon.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import selectorDetectorRoutes from "./routes/selector-detector.routes.js";
 import couponValidatorRoutes from "./routes/coupon-validator.routes.js";
+import onboardingRoutes from "./routes/onboarding.routes.js";
 import { config } from "./config/env.js";
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(`${config.server.basePath}/coupons`, couponRoutes);
 app.use(`${config.server.basePath}/users`, userRoutes);
 app.use(`${config.server.basePath}/selector`, selectorDetectorRoutes);
 app.use(`${config.server.basePath}/coupon-validator`, couponValidatorRoutes);
+app.use(`${config.server.basePath}/onboarding`, onboardingRoutes);
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({
