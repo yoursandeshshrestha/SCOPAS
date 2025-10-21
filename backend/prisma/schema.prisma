@@ -50,16 +50,63 @@ model store {
 }
 
 model users {
-  id             String           @id
-  email          String           @unique
-  name           String?
-  password       String?
-  googleId       String?          @unique
-  provider       String           @default("local")
-  avatar         String?
-  role           String           @default("user")
-  isActive       Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  refresh_tokens refresh_tokens[]
+  id                   String                 @id
+  email                String                 @unique
+  name                 String?
+  password             String?
+  googleId             String?                @unique
+  provider             String                 @default("local")
+  avatar               String?
+  role                 String                 @default("user")
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  refresh_tokens       refresh_tokens[]
+  onboarding_responses onboarding_responses[]
+}
+
+model onboarding_questions {
+  id                   String                 @id @default(uuid())
+  questionNumber       Int                    @unique
+  category             String
+  questionText         String
+  questionType         String                 @default("single-choice") // "single-choice" or "text-input"
+  options              String[] // Array of options (4 options for choice questions, empty for text input)
+  isActive             Boolean                @default(true)
+  order                Int
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  onboarding_responses onboarding_responses[]
+
+  @@index([questionNumber])
+  @@index([isActive])
+}
+
+model onboarding_responses {
+  id              String                @id @default(uuid())
+  userId          String
+  questionId      String
+  questionNumber  Int
+  answer          String // Stores the selected option or text input
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  user            users                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        onboarding_questions  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@index([questionNumber])
+}
+
+model onboarding_progress {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  currentStep   Int       @default(0) // 0 = name question, 1-12 = other questions
+  isCompleted   Boolean   @default(false)
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  lastUpdatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([isCompleted])
 }
