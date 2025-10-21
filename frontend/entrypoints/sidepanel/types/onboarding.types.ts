@@ -3,7 +3,7 @@ export interface OnboardingQuestion {
   questionNumber: number;
   category: string;
   questionText: string;
-  questionType: 'single-choice' | 'text-input';
+  questionType: "single-choice" | "text-input";
   options: string[];
   order: number;
 }
