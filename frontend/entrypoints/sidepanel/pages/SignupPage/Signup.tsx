@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Lock, User as UserIcon, AlertCircle } from "lucide-react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { signup, clearError } from "../../store/slices/authSlice";
@@ -16,7 +16,6 @@ const Signup: React.FC = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   useEffect(() => {
@@ -46,9 +45,7 @@ const Signup: React.FC = () => {
     }
 
     try {
-      await dispatch(
-        signup({ email, password, name: name || undefined })
-      ).unwrap();
+      await dispatch(signup({ email, password })).unwrap();
       // Navigation will be handled by useEffect
     } catch (err) {
       // Error is handled by Redux state
@@ -92,15 +89,6 @@ const Signup: React.FC = () => {
                   <p className="text-red-500 text-sm">{error}</p>
                 </div>
               )}
-
-              {/* Name Input */}
-              <Input
-                type="text"
-                placeholder="Name (optional)"
-                icon={UserIcon}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
 
               {/* Email Input */}
               <Input
