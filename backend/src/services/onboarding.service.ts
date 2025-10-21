@@ -10,7 +10,9 @@ import type {
 /**
  * Get all active onboarding questions
  */
-export async function getAllOnboardingQuestions(): Promise<OnboardingQuestionResponse[]> {
+export async function getAllOnboardingQuestions(): Promise<
+  OnboardingQuestionResponse[]
+> {
   const questions = await db.onboarding_questions.findMany({
     where: {
       isActive: true,
@@ -29,7 +31,7 @@ export async function getAllOnboardingQuestions(): Promise<OnboardingQuestionRes
     },
   });
 
-  return questions;
+  return questions as OnboardingQuestionResponse[];
 }
 
 /**
@@ -127,6 +129,14 @@ export async function saveAnswer(
     }
   }
 
+  // Get total number of questions to determine next step
+  const totalQuestions = await db.onboarding_questions.count({
+    where: { isActive: true },
+  });
+
+  // Calculate next step (but don't exceed total questions - 1)
+  const nextStep = Math.min(questionNumber + 1, totalQuestions - 1);
+
   // Start a transaction to ensure consistency
   await db.$transaction(async (tx) => {
     // Upsert the response
@@ -149,16 +159,16 @@ export async function saveAnswer(
       },
     });
 
-    // Upsert progress record
+    // Upsert progress record - set currentStep to the NEXT question
     await tx.onboarding_progress.upsert({
       where: { userId },
       update: {
-        currentStep: questionNumber,
+        currentStep: nextStep,
         lastUpdatedAt: new Date(),
       },
       create: {
         userId,
-        currentStep: questionNumber,
+        currentStep: nextStep,
       },
     });
 
@@ -212,10 +222,10 @@ export async function completeOnboarding(
     where: { userId },
   });
 
-  // Validate all questions are answered (+1 for name question which is question 0)
-  if (responseCount < totalQuestions + 1) {
+  // Validate all questions are answered
+  if (responseCount < totalQuestions) {
     throw new BadRequestError(
-      `Please answer all questions. Answered: ${responseCount}/${totalQuestions + 1}`
+      `Please answer all questions. Answered: ${responseCount}/${totalQuestions}`
     );
   }
 
@@ -254,4 +264,3 @@ export async function resetOnboarding(userId: string): Promise<void> {
     });
   });
 }
-
