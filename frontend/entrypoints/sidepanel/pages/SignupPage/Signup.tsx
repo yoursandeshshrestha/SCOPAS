@@ -20,7 +20,8 @@ const Signup: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      // Redirect to onboarding after successful signup
+      navigate("/onboarding");
     }
   }, [isAuthenticated, navigate]);
 
