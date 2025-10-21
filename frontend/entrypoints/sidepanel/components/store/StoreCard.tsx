@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Store as StoreIcon } from "lucide-react";
-import { Store } from "../types/store.types";
+import { Store } from "../../types/store.types";
 
 interface StoreCardProps {
   store: Store;
