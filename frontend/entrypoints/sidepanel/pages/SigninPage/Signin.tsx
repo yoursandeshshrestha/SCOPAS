@@ -49,7 +49,7 @@ const Signin: React.FC = () => {
   return (
     <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
       {/* Top section with background image (upside down) */}
-      <div className="h-[60%] w-full relative overflow-hidden">
+      <div className="h-[100%] w-full relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -61,7 +61,7 @@ const Signin: React.FC = () => {
 
       {/* Signin form section */}
       <div className="absolute inset-0 flex items-end">
-        <div className="w-full rounded-t-[40px] relative z-10 py-10 bg-[var(--bg-dark)] h-auto">
+        <div className="w-full rounded-t-[40px] relative z-10 py-10 bg-[var(--bg-dark)] h-[60%]">
           <div className="flex flex-col items-center justify-center h-full px-6">
             {/* Welcome Message */}
             <div className="mb-8">
