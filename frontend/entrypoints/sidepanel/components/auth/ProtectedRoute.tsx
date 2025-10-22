@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../store/hooks";
 import { useOnboardingStatus } from "../../pages/OnboardingPage/hooks/useOnboardingStatus";
-import { Loader2 } from "lucide-react";
+import LoadingScreen from "../../pages/OnboardingPage/components/LoadingScreen";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -24,11 +24,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If we're checking onboarding status, show loading
   if (isLoading && requireOnboarding) {
-    return (
-      <div className="h-screen w-full bg-[var(--bg-dark)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // If onboarding is required and not completed, redirect to onboarding

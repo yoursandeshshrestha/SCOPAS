@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
-import { onboardingService } from "../../services/onboarding.service";
-import type {
-  OnboardingQuestion,
-  UserOnboardingProgress,
-} from "../../types/onboarding.types";
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
 import OnboardingProgress from "./components/OnboardingProgress";
 import QuestionCard from "./components/QuestionCard";
 import Button from "../../components/ui/Button";
@@ -62,7 +59,8 @@ const Onboarding: React.FC = () => {
         !showWelcome &&
         e.key === "Enter" &&
         currentAnswer.trim() &&
-        !isCompleting
+        !isCompleting &&
+        currentQuestion?.questionType === "text-input"
       ) {
         handleNext();
       }
@@ -70,14 +68,14 @@ const Onboarding: React.FC = () => {
 
     window.addEventListener("keypress", handleKeyPress);
     return () => window.removeEventListener("keypress", handleKeyPress);
-  }, [showWelcome, currentAnswer, isCompleting]);
+  }, [showWelcome, currentAnswer, isCompleting, currentQuestion]);
 
   // Handle start onboarding
   const handleStartOnboarding = () => {
     setShowWelcome(false);
   };
 
-  // If already completed, redirect to dashboard
+  // If already completed, redirect to dashboard (skip completion screen)
   useEffect(() => {
     if (progress?.isCompleted) {
       navigate("/dashboard");
@@ -119,7 +117,7 @@ const Onboarding: React.FC = () => {
   return (
     <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
       {/* Top section with background image (upside down) */}
-      <div className="h-[80%] w-full relative overflow-hidden">
+      <div className="h-[100%] w-full relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -131,9 +129,9 @@ const Onboarding: React.FC = () => {
 
       {/* Onboarding content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] h-auto flex flex-col">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[45%] h-auto flex flex-col">
           {/* Header with progress */}
-          <div className="px-6 pt-6 pb-4 border-b border-gray-800/50">
+          <div className="px-6 pt-10 pb-4 border-b border-gray-800/50">
             <OnboardingProgress
               currentStep={currentStep + 1}
               totalSteps={questions.length}
@@ -155,44 +153,66 @@ const Onboarding: React.FC = () => {
                 </div>
               )}
 
-              {/* Question */}
-              <QuestionCard
-                question={currentQuestion}
-                selectedAnswer={currentAnswer}
-                onAnswerChange={handleAnswerChange}
-              />
+              {/* Question with animation */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.15, ease: "easeInOut" }}
+                >
+                  <QuestionCard
+                    question={currentQuestion}
+                    selectedAnswer={currentAnswer}
+                    onAnswerChange={(answer) => {
+                      handleAnswerChange(answer);
+                      // Auto-advance for choice questions
+                      if (currentQuestion.questionType !== "text-input") {
+                        setTimeout(() => {
+                          handleNext(answer);
+                        }, 300);
+                      }
+                    }}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
 
           {/* Navigation buttons */}
           <div className="px-6 pb-6 pt-4 bg-[var(--bg-dark)] border-t border-gray-800/50">
             <div className="max-w-md mx-auto flex gap-3">
-              {/* Previous button */}
+              {/* Previous button - Ghost button with icon */}
               {currentStep > 0 && (
-                <Button
-                  variant="secondary"
+                <button
                   onClick={handlePrevious}
                   disabled={isCompleting}
-                  className="max-w-[120px] py-3 text-base font-medium !rounded-full"
+                  className="px-4 py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  Previous
-                </Button>
+                  <span className="flex items-center gap-2 text-gray-400 hover:text-white text-base font-medium hover:underline hover:tracking-wider transition-all">
+                    <ArrowLeft className="w-5 h-5" />
+                    Previous
+                  </span>
+                </button>
               )}
 
-              {/* Next/Complete button */}
-              <Button
-                variant="primary"
-                onClick={handleNext}
-                disabled={!currentAnswer.trim() || isCompleting}
-                isLoading={isCompleting}
-                className="w-full py-3 text-base font-medium !rounded-full"
-              >
-                {isCompleting
-                  ? "Completing..."
-                  : isLastQuestion
-                  ? "Complete"
-                  : "Next"}
-              </Button>
+              {/* Next/Complete button - only show for text-input questions */}
+              {currentQuestion.questionType === "text-input" && (
+                <Button
+                  variant="primary"
+                  onClick={() => handleNext()}
+                  disabled={!currentAnswer.trim() || isCompleting}
+                  isLoading={isCompleting}
+                  className="w-full py-3 text-base font-medium !rounded-full"
+                >
+                  {isCompleting
+                    ? "Completing..."
+                    : isLastQuestion
+                    ? "Complete"
+                    : "Next"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

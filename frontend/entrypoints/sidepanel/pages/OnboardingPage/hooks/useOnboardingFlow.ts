@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { onboardingService } from "../../../services/onboarding.service";
 import { OnboardingQuestion } from "../../../types/onboarding.types";
 
@@ -15,7 +14,6 @@ export const useOnboardingFlow = ({
   questions,
   initialProgress,
 }: UseOnboardingFlowProps) => {
-  const navigate = useNavigate();
   const hasInitialized = useRef(false);
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -70,8 +68,11 @@ export const useOnboardingFlow = ({
     }
   };
 
-  const handleNext = async () => {
-    if (!currentAnswer.trim()) {
+  const handleNext = async (answerOverride?: string) => {
+    const answer =
+      answerOverride !== undefined ? answerOverride : currentAnswer;
+
+    if (!answer.trim()) {
       setError("Please provide an answer");
       return;
     }
@@ -82,7 +83,7 @@ export const useOnboardingFlow = ({
     const questionToSave = {
       id: currentQuestion.id,
       number: currentQuestion.questionNumber,
-      answer: currentAnswer,
+      answer: answer,
     };
 
     // Optimistically update local state
@@ -90,6 +91,11 @@ export const useOnboardingFlow = ({
       ...prev,
       [questionToSave.number]: questionToSave.answer,
     }));
+
+    // Update current answer state if override was provided
+    if (answerOverride !== undefined) {
+      setCurrentAnswer(answerOverride);
+    }
 
     // If last question, complete onboarding
     if (isLastQuestion) {
@@ -134,11 +140,7 @@ export const useOnboardingFlow = ({
   const completeOnboarding = async () => {
     try {
       await onboardingService.completeOnboarding();
-
-      // Show completion state briefly before redirect
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      // Completion screen will handle navigation via "Let's Get Started" button
     } catch (err: any) {
       console.error("Failed to complete onboarding:", err);
       setError(err.message || "Failed to complete onboarding");
