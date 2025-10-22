@@ -25,7 +25,7 @@ const CompletionScreen: React.FC = () => {
 
       {/* Content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-auto h-auto flex flex-col overflow-hidden">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[60%] h-[60%] flex flex-col overflow-hidden">
           {/* Confetti animation */}
           <Confetti
             className="absolute inset-0 w-full h-full pointer-events-none z-50"
@@ -37,7 +37,7 @@ const CompletionScreen: React.FC = () => {
             }}
           />
 
-          <div className="flex-1 flex items-center px-6 py-8">
+          <div className="flex-1 flex px-6 py-8">
             <div className="max-w-lg w-full">
               {/* Completion message */}
               <div className="mb-8">
@@ -45,7 +45,7 @@ const CompletionScreen: React.FC = () => {
                   All set
                 </h1>
                 <h2 className="text-3xl font-semibold text-white mb-4">
-                  Welcome to Scopas
+                  Welcome to Scopas 🎉
                 </h2>
                 <p className="text-gray-400 text-sm font-light leading-relaxed">
                   Your profile is personalized and ready. Let's start saving!

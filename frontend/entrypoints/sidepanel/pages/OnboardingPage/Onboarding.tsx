@@ -129,7 +129,7 @@ const Onboarding: React.FC = () => {
 
       {/* Onboarding content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[45%] h-auto flex flex-col">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[60%] h-[60%] flex flex-col">
           {/* Header with progress */}
           <div className="px-6 pt-10 pb-4 border-b border-gray-800/50">
             <OnboardingProgress

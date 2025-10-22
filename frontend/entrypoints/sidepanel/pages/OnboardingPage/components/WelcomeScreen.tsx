@@ -32,8 +32,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* Welcome content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[37%] h-auto flex flex-col">
-          <div className="flex-1 flex items-center px-6 py-8">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[60%] h-[60%] flex flex-col">
+          <div className="flex-1 flex px-6 py-8">
             <div className="max-w-lg w-full">
               {/* Welcome message */}
               <div className="mb-8">
