@@ -14,7 +14,7 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onRetry }) => {
   return (
     <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
       {/* Top section with background image (upside down) */}
-      <div className="h-[80%] w-full relative overflow-hidden">
+      <div className="h-[100%] w-full relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -26,7 +26,7 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({ error, onRetry }) => {
 
       {/* Content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] h-auto flex flex-col">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[45%] h-auto flex flex-col">
           <div className="flex-1 flex items-center px-6 py-8">
             <div className="text-center max-w-lg w-full">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />

@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 export interface ButtonProps {
   type?: "button" | "submit" | "reset";
   variant?: "primary" | "secondary";
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children: React.ReactNode;
   icon?: React.ReactNode;
   className?: string;

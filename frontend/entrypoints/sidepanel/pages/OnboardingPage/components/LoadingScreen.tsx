@@ -4,7 +4,7 @@ const LoadingScreen: React.FC = () => {
   return (
     <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
       {/* Top section with background image (upside down) */}
-      <div className="h-[80%] w-full relative overflow-hidden">
+      <div className="h-[100%] w-full relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -16,30 +16,38 @@ const LoadingScreen: React.FC = () => {
 
       {/* Loading content section */}
       <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] h-auto flex flex-col">
+        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-auto h-auto flex flex-col">
           <div className="flex-1 flex items-center px-6 py-8">
             <div className="max-w-lg w-full">
-              {/* Loading skeleton */}
+              {/* Loading message */}
               <div className="mb-8">
-                {/* Title skeleton */}
-                <div className="h-9 w-32 bg-gray-800/50 rounded-lg mb-1 animate-pulse" />
-
-                {/* Subtitle skeleton */}
-                <div className="h-9 w-64 bg-gray-800/50 rounded-lg mb-4 animate-pulse" />
-
-                {/* Description skeleton */}
-                <div className="space-y-2">
-                  <div className="h-4 w-full bg-gray-800/30 rounded animate-pulse" />
-                  <div className="h-4 w-3/4 bg-gray-800/30 rounded animate-pulse" />
-                </div>
+                <h1 className="text-3xl font-normal text-white mb-1">
+                  Setting up... Just a moment
+                </h1>
+                <p className="text-gray-400 text-sm font-light leading-relaxed">
+                  Please wait while we prepare your personalized experience
+                </p>
               </div>
 
-              {/* Button skeleton */}
-              <div className="h-12 w-full bg-gray-800/50 rounded-full animate-pulse" />
+              {/* Progress bar */}
+              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full animate-progress"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes progress {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-progress {
+          width: 0%;
+          animation: progress 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

@@ -25,7 +25,7 @@ const OptionButton: React.FC<OptionButtonProps> = ({
         }
       `}
     >
-      <span className="font-normal text-sm leading-relaxed block truncate">
+      <span className="font-normal text-sm leading-relaxed block">
         {option}
       </span>
     </button>
