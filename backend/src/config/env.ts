@@ -25,6 +25,10 @@ const EnvSchema = z.object({
   CORS_CREDENTIALS: z.string().optional(),
 
   OPENAI_API_KEY: z.string().optional(),
+
+  PLAID_CLIENT_ID: z.string().optional(),
+  PLAID_SECRET: z.string().optional(),
+  PLAID_ENV: z.enum(["sandbox", "development", "production"]).default("sandbox"),
 });
 
 const parsed = EnvSchema.safeParse(process.env);
@@ -74,6 +78,11 @@ export const config = {
   },
   openai: {
     apiKey: env.OPENAI_API_KEY,
+  },
+  plaid: {
+    clientId: env.PLAID_CLIENT_ID,
+    secret: env.PLAID_SECRET,
+    env: env.PLAID_ENV,
   },
 } as const;
 

@@ -3,7 +3,7 @@ export interface OnboardingQuestion {
   questionNumber: number;
   category: string;
   questionText: string;
-  questionType: 'single-choice' | 'text-input';
+  questionType: "single-choice" | "text-input";
   options: string[];
   isActive: boolean;
   order: number;
@@ -36,7 +36,7 @@ export interface OnboardingQuestionResponse {
   questionNumber: number;
   category: string;
   questionText: string;
-  questionType: 'single-choice' | 'text-input';
+  questionType: "single-choice" | "text-input";
   options: string[];
   order: number;
 }
@@ -56,6 +56,14 @@ export interface SaveAnswerInput {
   answer: string;
 }
 
+export interface SaveAllAnswersInput {
+  answers: {
+    questionId: string;
+    questionNumber: number;
+    answer: string;
+  }[];
+}
+
 export interface CompleteOnboardingInput {
   userName: string; // From step 0
 }
@@ -64,5 +72,3 @@ export interface OnboardingQuestionsWithProgress {
   questions: OnboardingQuestionResponse[];
   progress: UserOnboardingProgress | null;
 }
-
-

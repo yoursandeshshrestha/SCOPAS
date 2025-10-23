@@ -63,6 +63,8 @@ model users {
   updatedAt            DateTime
   refresh_tokens       refresh_tokens[]
   onboarding_responses onboarding_responses[]
+  plaid_items          plaid_items[]
+  plaid_accounts       plaid_accounts[]
 }
 
 model onboarding_questions {
@@ -109,4 +111,43 @@ model onboarding_progress {
 
   @@index([userId])
   @@index([isCompleted])
+}
+
+model plaid_items {
+  id              String           @id @default(uuid())
+  userId          String
+  itemId          String           @unique
+  accessToken     String
+  institutionId   String
+  institutionName String
+  status          String           @default("active")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts        plaid_accounts[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model plaid_accounts {
+  id               String      @id @default(uuid())
+  userId           String
+  plaidItemId      String
+  accountId        String      @unique
+  name             String
+  officialName     String?
+  type             String
+  subtype          String?
+  mask             String?
+  currentBalance   Float?
+  availableBalance Float?
+  currency         String      @default("USD")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  user             users       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem        plaid_items @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([plaidItemId])
 }

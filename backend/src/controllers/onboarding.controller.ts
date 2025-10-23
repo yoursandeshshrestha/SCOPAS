@@ -5,6 +5,7 @@ import {
   getUserOnboardingProgress,
   getQuestionsWithProgress,
   saveAnswer,
+  saveAllAnswers,
   completeOnboarding,
   resetOnboarding,
 } from "../services/onboarding.service.js";
@@ -20,7 +21,7 @@ export async function getQuestionsHandler(
 ): Promise<void> {
   try {
     const questions = await getAllOnboardingQuestions();
-    
+
     res.status(200).json({
       status: "success",
       data: questions,
@@ -49,7 +50,7 @@ export async function getProgressHandler(
     }
 
     const progress = await getUserOnboardingProgress(req.user.userId);
-    
+
     res.status(200).json({
       status: "success",
       data: progress,
@@ -78,7 +79,7 @@ export async function getQuestionsWithProgressHandler(
     }
 
     const data = await getQuestionsWithProgress(req.user.userId);
-    
+
     res.status(200).json({
       status: "success",
       data,
@@ -92,6 +93,18 @@ const saveAnswerSchema = z.object({
   questionId: z.string().uuid(),
   questionNumber: z.number().int().min(0),
   answer: z.string().min(1).max(500),
+});
+
+const saveAllAnswersSchema = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().uuid(),
+        questionNumber: z.number().int().min(0),
+        answer: z.string().min(1).max(500),
+      })
+    )
+    .min(1),
 });
 
 /**
@@ -118,6 +131,45 @@ export async function saveAnswerHandler(
     res.status(200).json({
       status: "success",
       message: "Answer saved successfully",
+      data: progress,
+    });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({
+        status: "error",
+        message: "Invalid input",
+        issues: err.flatten(),
+      });
+      return;
+    }
+    next(err);
+  }
+}
+
+/**
+ * POST /api/onboarding/save-all-answers
+ * Save all user's answers at once
+ */
+export async function saveAllAnswersHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        status: "error",
+        message: "Unauthorized",
+      });
+      return;
+    }
+
+    const body = saveAllAnswersSchema.parse(req.body);
+    const progress = await saveAllAnswers(req.user.userId, body);
+
+    res.status(200).json({
+      status: "success",
+      message: "All answers saved successfully",
       data: progress,
     });
   } catch (err) {
@@ -191,5 +243,3 @@ export async function resetOnboardingHandler(
     next(err);
   }
 }
-
-

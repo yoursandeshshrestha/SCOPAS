@@ -4,6 +4,7 @@ import {
   getUserProfile,
   updateUserProfile,
   deleteUserAccount,
+  deleteAllUsers,
 } from "../services/user.service.js";
 
 export async function getProfileHandler(
@@ -88,6 +89,23 @@ export async function deleteAccountHandler(
     res.status(200).json({
       status: "success",
       message: "Account deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAllUsersHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const result = await deleteAllUsers();
+    res.status(200).json({
+      status: "success",
+      message: "All users deleted successfully",
+      data: result,
     });
   } catch (err) {
     next(err);

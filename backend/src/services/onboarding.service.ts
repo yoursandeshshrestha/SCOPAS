@@ -194,6 +194,124 @@ export async function saveAnswer(
 }
 
 /**
+ * Save all answers at once
+ */
+export async function saveAllAnswers(
+  userId: string,
+  input: SaveAllAnswersInput
+): Promise<UserOnboardingProgress> {
+  const { answers } = input;
+
+  if (!answers || answers.length === 0) {
+    throw new BadRequestError("No answers provided");
+  }
+
+  // Get all active questions to validate
+  const questions = await db.onboarding_questions.findMany({
+    where: { isActive: true },
+    orderBy: { questionNumber: "asc" },
+  });
+
+  const totalQuestions = questions.length;
+
+  // Validate all questions are answered
+  if (answers.length !== totalQuestions) {
+    throw new BadRequestError(
+      `Please answer all questions. Provided: ${answers.length}/${totalQuestions}`
+    );
+  }
+
+  // Validate each answer
+  for (const answerData of answers) {
+    const { questionId, questionNumber, answer } = answerData;
+
+    // Validate question exists
+    const question = questions.find((q) => q.id === questionId);
+    if (!question) {
+      throw new NotFoundError(`Question with ID ${questionId} not found`);
+    }
+
+    // Validate question number matches
+    if (question.questionNumber !== questionNumber) {
+      throw new BadRequestError(
+        `Question number mismatch for question ${questionId}`
+      );
+    }
+
+    // Validate answer is not empty
+    if (!answer || answer.trim() === "") {
+      throw new BadRequestError(
+        `Answer cannot be empty for question ${questionNumber}`
+      );
+    }
+
+    // For single-choice questions, validate the answer is one of the options
+    if (question.questionType === "single-choice") {
+      if (!question.options.includes(answer)) {
+        throw new BadRequestError(
+          `Invalid answer option for question ${questionNumber}`
+        );
+      }
+    }
+  }
+
+  // Start a transaction to ensure consistency
+  await db.$transaction(async (tx) => {
+    // Delete existing responses for this user
+    await tx.onboarding_responses.deleteMany({
+      where: { userId },
+    });
+
+    // Create all new responses
+    await tx.onboarding_responses.createMany({
+      data: answers.map((answerData) => ({
+        userId,
+        questionId: answerData.questionId,
+        questionNumber: answerData.questionNumber,
+        answer: answerData.answer,
+      })),
+    });
+
+    // Update user's name if question 0 (name) is provided
+    const nameAnswer = answers.find((a) => a.questionNumber === 0);
+    if (nameAnswer) {
+      await tx.users.update({
+        where: { id: userId },
+        data: {
+          name: nameAnswer.answer,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    // Update progress to mark as completed
+    await tx.onboarding_progress.upsert({
+      where: { userId },
+      update: {
+        currentStep: totalQuestions - 1, // Last question
+        isCompleted: true,
+        completedAt: new Date(),
+        lastUpdatedAt: new Date(),
+      },
+      create: {
+        userId,
+        currentStep: totalQuestions - 1,
+        isCompleted: true,
+        completedAt: new Date(),
+      },
+    });
+  });
+
+  // Return updated progress
+  const updatedProgress = await getUserOnboardingProgress(userId);
+  if (!updatedProgress) {
+    throw new Error("Failed to get updated progress");
+  }
+
+  return updatedProgress;
+}
+
+/**
  * Complete onboarding
  */
 export async function completeOnboarding(

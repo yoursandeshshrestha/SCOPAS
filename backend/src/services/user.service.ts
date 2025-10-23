@@ -132,3 +132,13 @@ export async function deleteUserAccount(userId: string): Promise<void> {
     where: { id: userId },
   });
 }
+
+export async function deleteAllUsers(): Promise<{ deletedCount: number }> {
+  // Get count before deletion
+  const userCount = await db.users.count();
+
+  // Delete all users (cascade will handle related records)
+  await db.users.deleteMany({});
+
+  return { deletedCount: userCount };
+}

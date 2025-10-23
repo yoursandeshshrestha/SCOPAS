@@ -47,7 +47,7 @@ export class StoreService {
 
     const mappedStores: StoreWithCoupons[] = stores.map((store) => ({
       id: store.id,
-      name: store.name,
+      name: store.name || "Unlisted Store",
       link: store.link,
       platformId: store.platformId,
       coupons: store.coupon,
@@ -83,7 +83,7 @@ export class StoreService {
 
     return {
       id: store.id,
-      name: store.name,
+      name: store.name || "Unlisted Store",
       link: store.link,
       platformId: store.platformId,
       coupons: store.coupon,
@@ -120,7 +120,7 @@ export class StoreService {
 
     return {
       id: store.id,
-      name: store.name,
+      name: store.name || "Unlisted Store",
       link: store.link,
       platformId: store.platformId,
       coupons: store.coupon,

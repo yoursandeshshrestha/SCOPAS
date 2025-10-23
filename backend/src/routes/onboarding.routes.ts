@@ -4,6 +4,7 @@ import {
   getProgressHandler,
   getQuestionsWithProgressHandler,
   saveAnswerHandler,
+  saveAllAnswersHandler,
   completeOnboardingHandler,
   resetOnboardingHandler,
 } from "../controllers/onboarding.controller.js";
@@ -26,6 +27,9 @@ router.get("/questions-with-progress", getQuestionsWithProgressHandler);
 // Save answer for a question
 router.post("/save-answer", saveAnswerHandler);
 
+// Save all answers at once
+router.post("/save-all-answers", saveAllAnswersHandler);
+
 // Complete onboarding
 router.post("/complete", completeOnboardingHandler);
 
@@ -33,5 +37,3 @@ router.post("/complete", completeOnboardingHandler);
 router.delete("/reset", resetOnboardingHandler);
 
 export default router;
-
-
