@@ -28,9 +28,16 @@ export interface SaveAnswerRequest {
   answer: string;
 }
 
+export interface SaveAllAnswersRequest {
+  answers: {
+    questionId: string;
+    questionNumber: number;
+    answer: string;
+  }[];
+}
+
 export interface OnboardingResponse<T> {
   status: string;
   data: T;
   message?: string;
 }
-

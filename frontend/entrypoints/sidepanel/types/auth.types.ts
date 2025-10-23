@@ -30,6 +30,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isNewUser: boolean; // Track if user just signed up
 }
 
 export interface AuthResponse {

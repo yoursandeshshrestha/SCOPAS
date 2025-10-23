@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 
 export interface ButtonProps {
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "ghost";
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children: React.ReactNode;
   icon?: React.ReactNode;
@@ -29,6 +29,8 @@ const Button: React.FC<ButtonProps> = ({
     primary: "bg-white text-black hover:bg-gray-100",
     secondary:
       "bg-[var(--bg-secondary)] text-white border border-gray-800 hover:bg-[#333333]",
+    ghost:
+      "bg-transparent text-gray-400 hover:text-white border-0 hover:bg-transparent hover:underline",
   };
 
   const disabledStyles =
@@ -61,4 +63,5 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
+export { Button };
 export default Button;

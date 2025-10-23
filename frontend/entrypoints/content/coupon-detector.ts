@@ -23,10 +23,13 @@ class CouponDetector {
       const storeName = this.getCurrentStoreName();
 
       if (!storeName) {
-        logger.log("Could not extract store name from domain");
+        logger.log("Could not extract store name from domain, using fallback");
+        const fallbackStoreName = "Unlisted Store";
+        this.currentStoreName = fallbackStoreName;
+        this.currentCoupons = [];
         await messagingService.sendClearBadge();
-        this.currentCoupons = null;
-        this.currentStoreName = null;
+        // Show the no coupons popup with fallback name
+        uiManager.showCouponList([], fallbackStoreName);
         return;
       }
 

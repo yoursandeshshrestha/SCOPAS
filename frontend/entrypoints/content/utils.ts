@@ -22,9 +22,13 @@ export function extractDomain(url: string): string {
  * Extract store name from domain
  * For example: amazon.com -> amazon, ebay.co.uk -> ebay
  * @param domain - The domain to extract store name from
- * @returns The store name
+ * @returns The store name or "Unlisted Store" if extraction fails
  */
 export function extractStoreName(domain: string): string {
+  if (!domain || domain.trim() === "") {
+    return "Unlisted Store";
+  }
+
   // Remove common TLDs and get the main part
   const parts = domain.split(".");
   
@@ -33,7 +37,7 @@ export function extractStoreName(domain: string): string {
     return parts[0];
   }
   
-  return domain;
+  return domain || "Unlisted Store";
 }
 
 /**

@@ -113,36 +113,59 @@ const Signup: React.FC = () => {
 
               {/* Terms and Conditions */}
               <div className="pt-2">
-                <Checkbox
-                  checked={acceptTerms}
-                  onChange={setAcceptTerms}
-                  label={
-                    <span>
-                      I agree to the{" "}
-                      <button
-                        type="button"
-                        className="text-white hover:underline font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate("/terms");
-                        }}
+                <div className="flex items-start gap-3">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="w-4 h-4 rounded border-2 border-gray-700 bg-transparent appearance-none cursor-pointer checked:bg-blue-500 checked:border-blue-500 transition-all"
+                    />
+                    {acceptTerms && (
+                      <svg
+                        className="absolute w-3 h-3 text-white pointer-events-none"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        Terms and Conditions
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        type="button"
-                        className="text-white hover:underline font-medium"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate("/privacy");
-                        }}
-                      >
-                        Privacy Policy
-                      </button>
-                    </span>
-                  }
-                />
+                        <path
+                          d="M13.5 4L6 11.5L2.5 8"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div
+                    className="text-gray-600 text-xs leading-relaxed cursor-pointer select-none"
+                    onClick={() => setAcceptTerms(!acceptTerms)}
+                  >
+                    <span>I agree to the </span>
+                    <button
+                      type="button"
+                      className="text-white hover:underline font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate("/terms");
+                      }}
+                    >
+                      Terms and Conditions
+                    </button>
+                    <span> and </span>
+                    <button
+                      type="button"
+                      className="text-white hover:underline font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate("/privacy");
+                      }}
+                    >
+                      Privacy Policy
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Signup Button */}

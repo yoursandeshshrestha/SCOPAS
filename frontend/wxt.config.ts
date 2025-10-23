@@ -8,5 +8,6 @@ export default defineConfig({
     action: {
       default_title: "Open Sidepanel",
     },
+    permissions: ["tabs", "activeTab"],
   },
 });

@@ -12,6 +12,7 @@ import Terms from "./pages/TermsPage/Terms";
 import Privacy from "./pages/PrivacyPage/Privacy";
 import Card from "./pages/CardPage/CardPage";
 import Account from "./pages/AccountPage/Account";
+import BankAccounts from "./pages/BankAccountsPage/BankAccounts";
 
 function App() {
   return (
@@ -68,6 +69,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Account />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bank-accounts"
+            element={
+              <ProtectedRoute>
+                <BankAccounts />
               </ProtectedRoute>
             }
           />

@@ -13,13 +13,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireOnboarding = true,
 }) => {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isNewUser } = useAppSelector((state) => state.auth);
   const { isOnboardingComplete, isLoading } = useOnboardingStatus();
   const location = useLocation();
 
   // Check authentication first
   if (!isAuthenticated) {
     return <Navigate to="/signin" replace />;
+  }
+
+  // Skip loading screen for new users - they definitely need onboarding
+  if (isNewUser && location.pathname === "/onboarding") {
+    return <>{children}</>;
   }
 
   // If we're checking onboarding status, show loading

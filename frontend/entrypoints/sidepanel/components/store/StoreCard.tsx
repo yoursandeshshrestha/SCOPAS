@@ -28,7 +28,7 @@ const StoreCard = memo<StoreCardProps>(({ store, onClick, index = 0 }) => {
           {/* Left Content - Store Name */}
           <div className="flex-1 min-w-0">
             <div className="text-base font-semibold text-white mb-1 tracking-wide">
-              {store.name}
+              {store.name || "Unlisted Store"}
             </div>
             <div className="text-neutral-400 text-sm leading-snug">
               {store.coupons.length} coupon
@@ -41,7 +41,7 @@ const StoreCard = memo<StoreCardProps>(({ store, onClick, index = 0 }) => {
             {store.logo ? (
               <img
                 src={store.logo}
-                alt={store.name}
+                alt={store.name || "Unlisted Store"}
                 className="w-full h-full object-cover"
               />
             ) : (

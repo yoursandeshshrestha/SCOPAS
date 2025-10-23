@@ -79,6 +79,25 @@ export const onboardingService = {
   },
 
   /**
+   * Save all answers at once (authenticated)
+   */
+  saveAllAnswers: async (
+    data: SaveAllAnswersRequest
+  ): Promise<UserOnboardingProgress> => {
+    try {
+      const response = await apiClient.post<
+        OnboardingResponse<UserOnboardingProgress>
+      >("/onboarding/save-all-answers", data);
+      return response.data.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error("Please sign in to continue onboarding");
+      }
+      throw error;
+    }
+  },
+
+  /**
    * Complete onboarding (authenticated)
    */
   completeOnboarding: async (): Promise<UserOnboardingProgress> => {

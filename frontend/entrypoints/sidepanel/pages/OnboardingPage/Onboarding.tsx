@@ -40,6 +40,7 @@ const Onboarding: React.FC = () => {
     currentAnswer,
     isLastQuestion,
     isCompleting,
+    isSubmitting,
     error: flowError,
     handleAnswerChange,
     handleNext,
@@ -167,8 +168,11 @@ const Onboarding: React.FC = () => {
                     selectedAnswer={currentAnswer}
                     onAnswerChange={(answer) => {
                       handleAnswerChange(answer);
-                      // Auto-advance for choice questions
-                      if (currentQuestion.questionType !== "text-input") {
+                      // Auto-advance for choice questions, but not for the last question
+                      if (
+                        currentQuestion.questionType !== "text-input" &&
+                        !isLastQuestion
+                      ) {
                         setTimeout(() => {
                           handleNext(answer);
                         }, 300);
@@ -197,19 +201,24 @@ const Onboarding: React.FC = () => {
                 </button>
               )}
 
-              {/* Next/Complete button - only show for text-input questions */}
-              {currentQuestion.questionType === "text-input" && (
+              {/* Next/Complete button - show for text-input questions OR last question */}
+              {(currentQuestion.questionType === "text-input" ||
+                isLastQuestion) && (
                 <Button
                   variant="primary"
                   onClick={() => handleNext()}
-                  disabled={!currentAnswer.trim() || isCompleting}
-                  isLoading={isCompleting}
+                  disabled={
+                    !currentAnswer.trim() || isCompleting || isSubmitting
+                  }
+                  isLoading={isSubmitting}
                   className="w-full py-3 text-base font-medium !rounded-full"
                 >
-                  {isCompleting
+                  {isSubmitting
+                    ? "Submitting..."
+                    : isCompleting
                     ? "Completing..."
                     : isLastQuestion
-                    ? "Complete"
+                    ? "Submit Answers"
                     : "Next"}
                 </Button>
               )}

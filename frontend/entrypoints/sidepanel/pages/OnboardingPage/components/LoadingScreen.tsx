@@ -1,51 +1,61 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 const LoadingScreen: React.FC = () => {
   return (
-    <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
-      {/* Top section with background image (upside down) */}
-      <div className="h-[100%] w-full relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "url('/images/main-background.png')",
-            transform: "rotate(180deg)",
-          }}
-        />
-      </div>
-
-      {/* Loading content section */}
-      <div className="absolute inset-0 flex items-end h-full">
-        <div className="w-full rounded-t-[40px] relative z-10 bg-[var(--bg-dark)] min-h-[60%] h-[60%] flex flex-col">
-          <div className="flex-1 flex px-6 py-8">
-            <div className="max-w-lg w-full">
-              {/* Loading message */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-normal text-white mb-1">
-                  Setting up... Just a moment
-                </h1>
-                <p className="text-gray-400 text-sm font-light leading-relaxed">
-                  Please wait while we prepare your personalized experience
-                </p>
-              </div>
-
-              {/* Progress bar */}
-              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full animate-progress"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="h-screen w-full flex items-center justify-center bg-[var(--bg-dark)]">
+      {/* Hourglass spinner */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          duration: 0.5,
+          type: "spring",
+          stiffness: 200,
+          damping: 20,
+        }}
+      >
+        <div className="lds-hourglass"></div>
+      </motion.div>
 
       <style>{`
-        @keyframes progress {
-          0% { width: 0%; }
-          100% { width: 100%; }
+        .lds-hourglass {
+          color: #ffffff;
         }
-        .animate-progress {
-          width: 0%;
-          animation: progress 2s ease-in-out infinite;
+        .lds-hourglass,
+        .lds-hourglass:after {
+          box-sizing: border-box;
+        }
+        .lds-hourglass {
+          display: inline-block;
+          position: relative;
+          width: 80px;
+          height: 80px;
+        }
+        .lds-hourglass:after {
+          content: " ";
+          display: block;
+          border-radius: 50%;
+          width: 0;
+          height: 0;
+          margin: 8px;
+          box-sizing: border-box;
+          border: 32px solid currentColor;
+          border-color: currentColor transparent currentColor transparent;
+          animation: lds-hourglass 1.2s infinite;
+        }
+        @keyframes lds-hourglass {
+          0% {
+            transform: rotate(0);
+            animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+          }
+          50% {
+            transform: rotate(900deg);
+            animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+          }
+          100% {
+            transform: rotate(1800deg);
+          }
         }
       `}</style>
     </div>

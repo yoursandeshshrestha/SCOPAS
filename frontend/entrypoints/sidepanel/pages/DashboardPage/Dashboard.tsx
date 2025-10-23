@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, AlertCircle, Store as StoreIcon } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Store as StoreIcon,
+  ArrowRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { signout } from "../../store/slices/authSlice";

@@ -15,6 +15,7 @@ const initialState: AuthState = {
   isAuthenticated: !!Cookies.get("accessToken"),
   isLoading: false,
   error: null,
+  isNewUser: false,
 };
 
 // Async thunks
@@ -64,11 +65,15 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearNewUserFlag: (state) => {
+      state.isNewUser = false;
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
+      state.isNewUser = false;
       Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
     },
@@ -77,6 +82,7 @@ const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken;
       state.user = action.payload.user || null;
       state.isAuthenticated = true;
+      state.isNewUser = false; // Assume existing user when setting credentials
     },
   },
   extraReducers: (builder) => {
@@ -92,6 +98,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user || null;
         state.isAuthenticated = true;
+        state.isNewUser = true; // Mark as new user after signup
         state.error = null;
 
         // Store tokens in cookies
@@ -117,6 +124,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user || null;
         state.isAuthenticated = true;
+        state.isNewUser = false; // Existing user signing in
         state.error = null;
 
         // Store tokens in cookies
@@ -140,6 +148,7 @@ const authSlice = createSlice({
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+        state.isNewUser = false;
         state.isLoading = false;
         state.error = null;
 
@@ -153,5 +162,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, logout, setCredentials } = authSlice.actions;
+export const { clearError, clearNewUserFlag, logout, setCredentials } =
+  authSlice.actions;
 export default authSlice.reducer;

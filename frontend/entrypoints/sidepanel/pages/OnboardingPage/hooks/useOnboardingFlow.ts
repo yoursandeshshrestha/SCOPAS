@@ -20,6 +20,7 @@ export const useOnboardingFlow = ({
   const [answers, setAnswers] = useState<{ [key: number]: string }>({});
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize state from progress only once
@@ -46,28 +47,6 @@ export const useOnboardingFlow = ({
     setCurrentAnswer(answer);
   };
 
-  const saveAnswer = async (
-    questionId: string,
-    questionNumber: number,
-    answer: string
-  ) => {
-    try {
-      setError(null);
-
-      await onboardingService.saveAnswer({
-        questionId,
-        questionNumber,
-        answer,
-      });
-
-      return true;
-    } catch (err: any) {
-      console.error("Failed to save answer:", err);
-      setError(err.message || "Failed to save answer");
-      return false;
-    }
-  };
-
   const handleNext = async (answerOverride?: string) => {
     const answer =
       answerOverride !== undefined ? answerOverride : currentAnswer;
@@ -86,7 +65,7 @@ export const useOnboardingFlow = ({
       answer: answer,
     };
 
-    // Optimistically update local state
+    // Update local state with current answer
     setAnswers((prev) => ({
       ...prev,
       [questionToSave.number]: questionToSave.answer,
@@ -97,35 +76,49 @@ export const useOnboardingFlow = ({
       setCurrentAnswer(answerOverride);
     }
 
-    // If last question, complete onboarding
+    // If last question, submit all answers at once
     if (isLastQuestion) {
-      setIsCompleting(true);
+      setIsSubmitting(true);
+      setError(null);
 
-      // Save the last answer and then complete
-      const success = await saveAnswer(
-        questionToSave.id,
-        questionToSave.number,
-        questionToSave.answer
-      );
+      try {
+        // Update local state with current answer first
+        const updatedAnswers = {
+          ...answers,
+          [questionToSave.number]: questionToSave.answer,
+        };
 
-      if (success) {
-        await completeOnboarding();
-      } else {
-        setIsCompleting(false);
+        // Prepare all answers for submission
+        const allAnswers = Object.entries(updatedAnswers).map(
+          ([questionNumber, answer]) => {
+            const question = questions.find(
+              (q) => q.questionNumber === parseInt(questionNumber)
+            );
+            return {
+              questionId: question!.id,
+              questionNumber: parseInt(questionNumber),
+              answer: answer,
+            };
+          }
+        );
+
+        // Submit all answers at once
+        await onboardingService.saveAllAnswers({ answers: allAnswers });
+
+        // Update local state with the final answers
+        setAnswers(updatedAnswers);
+
+        // Mark as completing to show completion screen
+        setIsCompleting(true);
+      } catch (err: any) {
+        console.error("Failed to submit answers:", err);
+        setError(err.message || "Failed to submit answers");
+        setIsSubmitting(false);
       }
     } else {
-      // Move to next question immediately (optimistic update)
+      // Move to next question immediately (no API call)
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
-
-      // Save answer in background
-      saveAnswer(
-        questionToSave.id,
-        questionToSave.number,
-        questionToSave.answer
-      ).catch((err) => {
-        console.error("Failed to save answer in background:", err);
-      });
     }
   };
 
@@ -137,17 +130,6 @@ export const useOnboardingFlow = ({
     }
   };
 
-  const completeOnboarding = async () => {
-    try {
-      await onboardingService.completeOnboarding();
-      // Completion screen will handle navigation via "Let's Get Started" button
-    } catch (err: any) {
-      console.error("Failed to complete onboarding:", err);
-      setError(err.message || "Failed to complete onboarding");
-      setIsCompleting(false);
-    }
-  };
-
   return {
     currentStep,
     currentQuestion,
@@ -155,6 +137,7 @@ export const useOnboardingFlow = ({
     answers,
     isLastQuestion,
     isCompleting,
+    isSubmitting,
     error,
     handleAnswerChange,
     handleNext,
