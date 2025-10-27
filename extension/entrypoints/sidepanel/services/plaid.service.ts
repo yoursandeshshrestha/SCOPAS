@@ -1,12 +1,16 @@
-import apiClient from '../config/api';
+import apiClient from "../config/api";
 import type {
   PlaidLinkTokenResponse,
   ExchangePublicTokenRequest,
   ExchangePublicTokenResponse,
   GetAccountsResponse,
-} from '../types/plaid.types';
+  GetTransactionsResponse,
+  TransactionQueryOptions,
+  CreditCard,
+  GetCreditCardsResponse,
+} from "../types/plaid.types";
 
-const PLAID_API = '/plaid';
+const PLAID_API = "/plaid";
 
 export const plaidService = {
   /**
@@ -55,6 +59,61 @@ export const plaidService = {
   syncBalances: async (): Promise<void> => {
     await apiClient.post(`${PLAID_API}/sync-balances`);
   },
+
+  /**
+   * Get user's transactions
+   */
+  getTransactions: async (
+    options?: TransactionQueryOptions
+  ): Promise<GetTransactionsResponse> => {
+    const params = new URLSearchParams();
+
+    if (options?.startDate) params.append("startDate", options.startDate);
+    if (options?.endDate) params.append("endDate", options.endDate);
+    if (options?.accountIds)
+      params.append("accountIds", options.accountIds.join(","));
+    if (options?.count) params.append("count", options.count.toString());
+    if (options?.offset) params.append("offset", options.offset.toString());
+    if (options?.sync) params.append("sync", options.sync.toString());
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${PLAID_API}/transactions?${queryString}`
+      : `${PLAID_API}/transactions`;
+
+    const response = await apiClient.get<GetTransactionsResponse>(url);
+    return response.data;
+  },
+
+  /**
+   * Sync transactions from Plaid
+   */
+  syncTransactions: async (): Promise<void> => {
+    try {
+      await apiClient.post(`${PLAID_API}/sync-transactions`);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get user's credit cards
+   */
+  getCreditCards: async (): Promise<GetCreditCardsResponse> => {
+    const response = await apiClient.get<GetCreditCardsResponse>(
+      `${PLAID_API}/credit-cards`
+    );
+    return response.data;
+  },
+
+  /**
+   * Sync credit cards from Plaid
+   */
+  syncCreditCards: async (): Promise<void> => {
+    try {
+      await apiClient.post(`${PLAID_API}/sync-credit-cards`);
+    } catch (error) {
+      throw error;
+    }
+  },
 };
-
-

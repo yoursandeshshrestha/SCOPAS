@@ -7,12 +7,18 @@ interface PlaidLinkButtonProps {
   onSuccess: () => void;
   buttonText?: string;
   variant?: "primary" | "secondary";
+  showIcons?: boolean;
+  showExternalLink?: boolean;
+  className?: string;
 }
 
 export const PlaidLinkButton: React.FC<PlaidLinkButtonProps> = ({
   onSuccess,
   buttonText = "Connect Bank Account",
   variant = "primary",
+  showIcons = true,
+  showExternalLink = true,
+  className = "",
 }) => {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -125,18 +131,22 @@ export const PlaidLinkButton: React.FC<PlaidLinkButtonProps> = ({
           variant === "primary"
             ? "bg-white text-black hover:bg-gray-100"
             : "bg-[var(--bg-secondary)] text-white border border-gray-800 hover:bg-[#333333]"
-        } ${!linkToken || loading ? "opacity-50 cursor-not-allowed" : ""}`}
+        } ${
+          !linkToken || loading ? "opacity-50 cursor-not-allowed" : ""
+        } ${className}`}
       >
         {loading ? (
           <>
-            <Loader2 size={16} className="animate-spin" />
+            {showIcons && <Loader2 size={16} className="animate-spin" />}
             Connecting...
           </>
         ) : (
           <>
-            <Plus size={16} />
+            {showIcons && <Plus size={16} />}
             {buttonText}
-            <ExternalLink size={14} className="opacity-60" />
+            {showIcons && showExternalLink && (
+              <ExternalLink size={14} className="opacity-60" />
+            )}
           </>
         )}
       </button>

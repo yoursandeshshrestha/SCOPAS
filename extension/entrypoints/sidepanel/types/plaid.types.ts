@@ -81,3 +81,76 @@ export interface GetAccountsResponse {
   data: ConnectedBankAccount[];
 }
 
+/**
+ * Transaction data structure
+ */
+export interface Transaction {
+  id: string;
+  transactionId: string;
+  accountId: string;
+  accountName: string;
+  institutionName: string;
+  amount: number;
+  date: string;
+  name: string;
+  merchantName: string | null;
+  merchantCategory: string | null;
+  merchantCategoryCode: string | null;
+  paymentChannel: string | null;
+  pending: boolean;
+  transactionType: string | null;
+  location: any | null;
+  personalFinanceCategory: string | null;
+  personalFinanceCategoryIcon: string | null;
+  logoUrl: string | null;
+  website: string | null;
+  authorizedDate: string | null;
+  authorizedDatetime: string | null;
+  datetime: string | null;
+}
+
+/**
+ * Get Transactions Response
+ */
+export interface GetTransactionsResponse {
+  status: string;
+  data: Transaction[];
+}
+
+/**
+ * Transaction query options
+ */
+export interface TransactionQueryOptions {
+  startDate?: string;
+  endDate?: string;
+  accountIds?: string[];
+  count?: number;
+  offset?: number;
+  sync?: boolean;
+}
+
+export interface CreditCard {
+  id: string;
+  cardId: string;
+  accountId: string;
+  cardName: string;
+  cardType?: string;
+  cardBrand?: string;
+  cardNetwork?: string;
+  cardNumber?: string;
+  expirationMonth?: number;
+  expirationYear?: number;
+  currentBalance?: number;
+  availableBalance?: number;
+  creditLimit?: number;
+  currency: string;
+  status: string;
+  isDefault: boolean;
+  institutionName: string;
+  createdAt: string;
+}
+
+export interface GetCreditCardsResponse {
+  status: string;
+  data: CreditCard[];
+}

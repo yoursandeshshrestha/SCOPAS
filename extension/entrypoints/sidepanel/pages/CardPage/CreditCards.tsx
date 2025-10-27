@@ -8,6 +8,9 @@ export interface CardDetails {
   expiryDate: string;
   cardholderName: string;
   cardType: string;
+  currentBalance?: number | null;
+  availableBalance?: number | null;
+  currency?: string;
 }
 
 // Available credit cards with details
@@ -87,7 +90,9 @@ export function CreditCards({
   domain,
   userCards,
 }: CreditCardsProps): React.ReactElement {
-  const allCards = [...userCards, ...CREDIT_CARDS];
+  // In sandbox, show mock data since Plaid doesn't provide credit cards
+  // In production, use: const allCards = userCards;
+  const allCards = userCards.length > 0 ? userCards : CREDIT_CARDS;
 
   return (
     <div className="w-full space-y-3">
@@ -117,6 +122,18 @@ export function CreditCards({
             <p className="text-base font-mono text-white tracking-wider">
               •••• •••• •••• {card.last4}
             </p>
+            {card.currentBalance !== null &&
+              card.currentBalance !== undefined && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-400">Current Balance</p>
+                  <p className="text-lg font-semibold text-white">
+                    {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: card.currency || "USD",
+                    }).format(Math.abs(card.currentBalance))}
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* Card Footer */}
@@ -126,15 +143,17 @@ export function CreditCards({
                 Cardholder
               </p>
               <p className="text-xs font-medium text-white">
-                {card.cardholderName}
+                {card.cardholderName === "N/A"
+                  ? "Connected via Plaid"
+                  : card.cardholderName}
               </p>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-gray-500 uppercase mb-0.5">
-                Expires
+                {card.expiryDate === "N/A" ? "Status" : "Expires"}
               </p>
               <p className="text-xs font-medium text-white">
-                {card.expiryDate}
+                {card.expiryDate === "N/A" ? "Active" : card.expiryDate}
               </p>
             </div>
           </div>
