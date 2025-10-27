@@ -65,6 +65,8 @@ model users {
   onboarding_responses onboarding_responses[]
   plaid_items          plaid_items[]
   plaid_accounts       plaid_accounts[]
+  plaid_transactions   plaid_transactions[]
+  credit_cards         credit_cards[]
 }
 
 model onboarding_questions {
@@ -131,10 +133,10 @@ model plaid_items {
 }
 
 model plaid_accounts {
-  id               String      @id @default(uuid())
+  id               String           @id @default(uuid())
   userId           String
   plaidItemId      String
-  accountId        String      @unique
+  accountId        String           @unique
   name             String
   officialName     String?
   type             String
@@ -142,12 +144,79 @@ model plaid_accounts {
   mask             String?
   currentBalance   Float?
   availableBalance Float?
-  currency         String      @default("USD")
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  user             users       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plaidItem        plaid_items @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  currency         String           @default("USD")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem        plaid_items      @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  transactions     plaid_transactions[]
+  creditCards      credit_cards[]
 
   @@index([userId])
   @@index([plaidItemId])
+}
+
+model plaid_transactions {
+  id                String         @id @default(uuid())
+  userId            String
+  plaidAccountId    String
+  transactionId     String         @unique
+  accountId         String
+  amount            Float
+  date              DateTime
+  name              String
+  merchantName      String?
+  merchantCategory  String?
+  merchantCategoryCode String?
+  paymentChannel    String?
+  pending           Boolean        @default(false)
+  transactionType   String?
+  location          Json?
+  personalFinanceCategory String?
+  personalFinanceCategoryIcon String?
+  logoUrl           String?
+  website           String?
+  authorizedDate    DateTime?
+  authorizedDatetime DateTime?
+  datetime          DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  user              users          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidAccount      plaid_accounts @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([plaidAccountId])
+  @@index([accountId])
+  @@index([date])
+  @@index([merchantCategory])
+}
+
+model credit_cards {
+  id                String         @id @default(uuid())
+  userId            String
+  plaidAccountId    String
+  accountId         String
+  cardId            String         @unique
+  cardName          String
+  cardType          String?
+  cardBrand         String?
+  cardNetwork       String?
+  cardNumber        String?        // Last 4 digits only
+  expirationMonth   Int?
+  expirationYear    Int?
+  currentBalance    Float?
+  availableBalance  Float?
+  creditLimit       Float?
+  currency          String         @default("USD")
+  status            String         @default("active")
+  isDefault         Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  user              users          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidAccount      plaid_accounts @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([plaidAccountId])
+  @@index([accountId])
+  @@index([cardId])
 }
