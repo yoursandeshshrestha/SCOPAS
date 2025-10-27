@@ -1,7 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import { usePlaidLink } from "react-plaid-link";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
-function App() {
+// Redux store setup (simplified for web)
+const store = configureStore({
+  reducer: {
+    // Add reducers as needed
+  },
+});
+
+// Main App component with Plaid integration
+function PlaidApp() {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,14 +51,21 @@ function App() {
         publicToken: publicToken,
         institutionId: metadata.institution.institution_id,
         institutionName: metadata.institution.name,
-        accounts: metadata.accounts.map((account: any) => ({
-          // eslint-disable-line @typescript-eslint/no-explicit-any
-          id: account.id,
-          name: account.name,
-          mask: account.mask || null,
-          type: account.type || "depository",
-          subtype: account.subtype || null,
-        })),
+        accounts: metadata.accounts.map(
+          (account: {
+            id: string;
+            name: string;
+            mask?: string;
+            type?: string;
+            subtype?: string;
+          }) => ({
+            id: account.id,
+            name: account.name,
+            mask: account.mask || null,
+            type: account.type || "depository",
+            subtype: account.subtype || null,
+          })
+        ),
       };
 
       console.log("🔍 Sending request data:", requestData);
@@ -126,30 +145,12 @@ function App() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-          fontFamily: "Arial, sans-serif",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              border: "3px solid rgba(255,255,255,0.3)",
-              borderTop: "3px solid white",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 20px",
-            }}
-          ></div>
-          <h2>Loading...</h2>
+      <div className="h-screen w-full bg-[var(--bg-dark)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-6"></div>
+          <h2 className="text-xl font-semibold text-white tracking-tight">
+            Loading...
+          </h2>
         </div>
       </div>
     );
@@ -157,34 +158,23 @@ function App() {
 
   if (error) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
-          color: "white",
-          fontFamily: "Arial, sans-serif",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <h2>❌ Error</h2>
-          <p>{error}</p>
-          <button
-            onClick={() => window.close()}
-            style={{
-              background: "white",
-              color: "#ff6b6b",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: "5px",
-              cursor: "pointer",
-              marginTop: "20px",
-            }}
-          >
-            Close
-          </button>
+      <div className="h-screen w-full bg-[var(--bg-dark)] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 p-8">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">
+              ❌ Error
+            </h2>
+            <p className="text-gray-400 mb-6">{error}</p>
+            <button
+              onClick={() => window.close()}
+              className="w-full py-3 px-6 bg-white text-red-500 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -192,108 +182,101 @@ function App() {
 
   if (success) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background: "linear-gradient(135deg, #00b894 0%, #00a085 100%)",
-          color: "white",
-          fontFamily: "Arial, sans-serif",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <h2>✅ Success!</h2>
-          <p>Bank account connected successfully!</p>
-          <p style={{ fontSize: "14px", opacity: 0.8 }}>
-            This window will close automatically...
-          </p>
+      <div className="h-screen w-full bg-[var(--bg-dark)] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 p-8">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-green-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">
+              ✅ Success!
+            </h2>
+            <p className="text-gray-400 mb-2">
+              Bank account connected successfully!
+            </p>
+            <p className="text-gray-500 text-sm">
+              This window will close automatically...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        color: "white",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div style={{ textAlign: "center", maxWidth: "400px", padding: "20px" }}>
-        <h1 style={{ marginBottom: "20px" }}>🏦 Connect Your Bank</h1>
-        <p style={{ marginBottom: "30px", opacity: 0.9 }}>
-          Securely connect your bank account to track spending and maximize
-          savings.
-        </p>
-
-        {/* Debug info */}
+    <div className="h-screen w-full relative overflow-hidden bg-[var(--bg-dark)]">
+      {/* Background image */}
+      <div className="absolute inset-0 bg-cover bg-center opacity-20">
         <div
+          className="w-full h-full"
           style={{
-            background: "rgba(255,255,255,0.1)",
-            padding: "10px",
-            borderRadius: "5px",
-            marginBottom: "20px",
-            fontSize: "12px",
-            textAlign: "left",
+            backgroundImage: "url('/images/main-background.png')",
+            transform: "rotate(180deg)",
           }}
-        >
-          <div>Token: {linkToken ? "✅ Present" : "❌ Missing"}</div>
-          <div>Auth: {authToken ? "✅ Present" : "❌ Missing"}</div>
-          <div>Ready: {ready ? "✅ Yes" : "❌ No"}</div>
-          <div>Loading: {loading ? "⏳ Yes" : "✅ No"}</div>
-        </div>
-
-        <button
-          onClick={handleManualOpen}
-          disabled={!ready}
-          style={{
-            background: "white",
-            color: "#667eea",
-            border: "none",
-            padding: "15px 30px",
-            borderRadius: "10px",
-            fontSize: "16px",
-            fontWeight: "600",
-            cursor: ready ? "pointer" : "not-allowed",
-            opacity: ready ? 1 : 0.6,
-            transition: "all 0.3s",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-          }}
-          onMouseOver={(e) => {
-            if (ready) {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
-            }
-          }}
-          onMouseOut={(e) => {
-            if (ready) {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
-            }
-          }}
-        >
-          {ready ? "🔗 Connect Bank Account" : "⏳ Loading..."}
-        </button>
-
-        <p style={{ fontSize: "12px", opacity: 0.7, marginTop: "20px" }}>
-          Powered by Plaid • Bank-level security
-        </p>
+        />
       </div>
 
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+      {/* Main content */}
+      <div className="relative z-10 h-full flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50 p-8">
+            <h1 className="text-3xl font-bold text-white mb-6 tracking-tight">
+              🏦 Connect Your Bank
+            </h1>
+            <p className="text-gray-400 mb-8 text-lg">
+              Securely connect your bank account to track spending and maximize
+              savings.
+            </p>
+
+            {/* Debug info */}
+            <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-4 mb-6 text-left text-sm">
+              <div className="text-gray-400">
+                Token: {linkToken ? "✅ Present" : "❌ Missing"}
+              </div>
+              <div className="text-gray-400">
+                Auth: {authToken ? "✅ Present" : "❌ Missing"}
+              </div>
+              <div className="text-gray-400">
+                Ready: {ready ? "✅ Yes" : "❌ No"}
+              </div>
+              <div className="text-gray-400">
+                Loading: {loading ? "⏳ Yes" : "✅ No"}
+              </div>
+            </div>
+
+            <button
+              onClick={handleManualOpen}
+              disabled={!ready}
+              className={`w-full py-4 px-8 rounded-xl text-lg font-semibold transition-all duration-300 ${
+                ready
+                  ? "bg-white text-black hover:bg-gray-100 hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
+                  : "bg-white/20 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {ready ? "🔗 Connect Bank Account" : "⏳ Loading..."}
+            </button>
+
+            <p className="text-gray-500 text-sm mt-6">
+              Powered by Plaid • Bank-level security
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
+  );
+}
+
+// Main App wrapper
+function App() {
+  return (
+    <Provider store={store}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<PlaidApp />} />
+          <Route path="/plaid" element={<PlaidApp />} />
+        </Routes>
+      </BrowserRouter>
+    </Provider>
   );
 }
 

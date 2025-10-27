@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import coin from "../../../../public/icon/coin.png";
-import { Menu, User, LogOut, Home, CreditCard, BarChart3, Building2 } from "lucide-react";
+import { Menu, User, LogOut, Home, BarChart3, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../store/hooks";
 import { signout } from "../../store/slices/authSlice";
@@ -64,15 +64,6 @@ const Navbar: React.FC = () => {
                         onSelect: () => {
                           setOpen(false);
                           navigate("/dashboard");
-                        },
-                      },
-                      {
-                        id: "card",
-                        label: "Card",
-                        Icon: CreditCard,
-                        onSelect: () => {
-                          setOpen(false);
-                          navigate("/card");
                         },
                       },
                       {

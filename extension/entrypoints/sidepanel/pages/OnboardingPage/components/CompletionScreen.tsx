@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2, Plus, ExternalLink } from "lucide-react";
@@ -17,6 +17,14 @@ const CompletionScreen: React.FC = () => {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plaidWindow, setPlaidWindow] = useState<Window | null>(null);
+
+  // Memoize confetti options to prevent multiple triggers
+  const confettiOptions = useMemo(() => ({
+    particleCount: 200,
+    spread: 100,
+    origin: { y: 0.6 },
+    colors: ["#ffffff", "#f0f0f0", "#e0e0e0"],
+  }), []);
 
   // Clear the new user flag when component mounts
   useEffect(() => {
@@ -167,12 +175,7 @@ const CompletionScreen: React.FC = () => {
           {/* Confetti animation */}
           <Confetti
             className="absolute inset-0 w-full h-full pointer-events-none z-50"
-            options={{
-              particleCount: 200,
-              spread: 100,
-              origin: { y: 0.6 },
-              colors: ["#ffffff", "#f0f0f0", "#e0e0e0"],
-            }}
+            options={confettiOptions}
           />
 
           <div className="flex-1 flex px-6 py-8">

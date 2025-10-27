@@ -61,15 +61,18 @@ const ConfettiComponent = forwardRef<ConfettiRef, Props>((props, ref) => {
     [globalOptions]
   );
 
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
   const fire = useCallback(
     async (opts = {}) => {
       try {
-        await instanceRef.current?.({ ...options, ...opts });
+        await instanceRef.current?.({ ...optionsRef.current, ...opts });
       } catch (error) {
         console.error("Confetti error:", error);
       }
     },
-    [options]
+    []
   );
 
   const api = useMemo(
